@@ -1,0 +1,78 @@
+/* static/css/base.css */
+
+/* Define tus variables de color y fuentes globales */
+:root {
+    --brand-green: #5cb85c;
+    --dark-green: #4a934a;
+    --light-bg: #f8f9fa; /* El fondo gris claro de tus imágenes */
+    --font-links: 'Poppins', sans-serif;
+    --font-logo: 'Fredoka', sans-serif;
+}
+
+body {
+    /* Fuente por defecto para toda la página */
+    font-family: var(--font-links);
+    background-color: var(--light-bg); /* Fondo gris claro */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex-grow: 1; /* Esto empuja el footer hacia abajo */
+}
+
+/* * ESTILOS DEL HERO (La imagen grande de montaña)
+ * Común a todas las páginas
+ */
+.hero-section {
+    position: relative;
+    width: 100%;
+    /* Ajusta la altura si necesitas ver más de la imagen.
+       55vh es un buen punto de partida, pero puedes probar 60vh o 65vh. */
+    height: 65vh;
+    min-height: 450px; /* Asegura una altura mínima en pantallas pequeñas */
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+
+    background-image: url('../img/tingo_maria_hero.webp');
+    background-size: cover;
+    /* ¡CAMBIO CLAVE AQUÍ!
+       'center 75%' desplaza la imagen hacia ABAJO, revelando la parte inferior
+       donde suele estar la montaña y el río. Puedes probar con 70%, 80% etc.
+       También puedes probar 'bottom' si quieres ver la parte más baja.
+    */
+    background-position: center 75%; /* <-- ESTE ES EL CAMBIO IMPORTANTE */
+}
+
+.hero-overlay {
+    /* Capa oscura para que el texto blanco resalte */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.45);
+}
+
+.hero-content {
+    /* Pone el texto por encima de la capa oscura */
+    position: relative;
+    z-index: 2;
+}
+
+/* * ESTILOS DEL CONTENIDO PRINCIPAL
+ * (La sección gris clara de abajo)
+ */
+.main-content {
+    background-color: var(--light-bg);
+    /* Desplazamos esta sección hacia ARRIBA para que se meta "debajo" del hero */
+    margin-top: -60px;
+    border-top-left-radius: 60px;
+    border-top-right-radius: 60px;
+    position: relative; /* Para que esté por encima del hero */
+    z-index: 3; /* Más alto que el hero-content */
+}

@@ -1,102 +1,89 @@
+{% extends 'Base/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NatureIn — Conservación, educación y juego</title>
-  <link rel="icon" href="{% static 'img/leaf.svg' %}" />
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="{% static 'css/landing.css' %}" />
-</head>
-<body>
-  <!-- Header -->
-  <header class="ni-header">
-    <div class="container">
-      <div class="brand">
-        <img src="{% static 'img/leaf.svg' %}" alt="NatureIn logo" />
-        NatureIn
-      </div>
-      <nav class="ni-nav">
-        <a href="#features">Características</a>
-        <a href="#impact">Impacto</a>
-        <a href="#contact">Contacto</a>
-      </nav>
-      <a class="button primary" href="#" role="button">Explorar</a>
-    </div>
-  </header>
 
-  <!-- Hero -->
-  <section class="ni-hero">
-    <div class="container hero-inner">
-      <h1>Conservación y educación ambiental con tecnología</h1>
-      <p>
-        Plataforma moderna orientada al core del negocio: fichas de especies nativas,
-        experiencias educativas interactivas y juegos que inspiran el cuidado de la naturaleza.
-      </p>
-      <div class="cta-group">
-        <a class="button" href="#features">Ver características</a>
-        <a class="button primary" href="#">Empezar ahora</a>
-      </div>
-      <div id="react-cta" class="react-cta"></div>
-      <div class="hero-illustration">
-        <img src="{% static 'img/leaf.svg' %}" alt="Hoja" />
-        <img src="{% static 'img/animal.svg' %}" alt="Fauna" />
-        <img src="{% static 'img/education.svg' %}" alt="Educación" />
-        <img src="{% static 'img/geo.svg' %}" alt="Hábitat" />
-      </div>
-    </div>
-  </section>
+{% block title %}Inicio - NatureIn{% endblock %}
 
-  <!-- Features -->
-  <section id="features" class="ni-features">
-    <div class="container">
-      <div class="row g-3">
-        <div class="col-12 col-md-6 col-lg-3">
-          <div class="card h-100">
-            <h3><img src="{% static 'img/leaf.svg' %}" alt="Especies"/> Fichas de Especies</h3>
-            <p>Información curada de flora y fauna con imágenes y datos clave.</p>
-          </div>
-        </div>
-        <div class="col-12 col-md-6 col-lg-3">
-          <div class="card h-100">
-            <h3><img src="{% static 'img/education.svg' %}" alt="Educación"/> Módulos Educativos</h3>
-            <p>Contenido interactivo para escuelas, turismo y ciudadanía responsable.</p>
-          </div>
-        </div>
-        <div class="col-12 col-md-6 col-lg-3">
-          <div class="card h-100">
-            <h3><img src="{% static 'img/animal.svg' %}" alt="Fauna"/> Registro de Avistamientos</h3>
-            <p>Mapa y datos geográficos para monitorear biodiversidad local.</p>
-          </div>
-        </div>
-        <div class="col-12 col-md-6 col-lg-3">
-          <div class="card h-100">
-            <h3><img src="{% static 'img/geo.svg' %}" alt="Hábitat"/> Impacto y Reportes</h3>
-            <p>Métricas e informes que impulsan decisiones sostenibles.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+{% block hero_content %}
+<h1 class="display-3 fw-bold">Descubre la Biodiversidad de Tingo María</h1>
+<a href="#" class="btn btn-success btn-lg mt-3">Explora Ahora</a>
+{% endblock hero_content %}
 
-  <!-- Footer -->
-  <footer class="ni-footer">
-    <div class="container d-flex justify-content-between align-items-center">
-      <small>© NatureIn · Educación y conservación</small>
-      <div>
-        <a class="text-decoration-none me-3" href="#">Privacidad</a>
-        <a class="text-decoration-none" href="#">Términos</a>
-      </div>
-    </div>
-  </footer>
+{% block content %}
+<div class="container my-5">
+    <div class="row g-4 g-lg-5">
 
-  <!-- React + Bootstrap JS -->
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-  <script src="{% static 'js/landing.js' %}"></script>
-</body>
-</html>
+        <div class="col-lg-5 d-flex">
+            <div class="card h-100 w-100 shadow-sm section-card">
+                <div class="card-body p-4 p-md-5 d-flex flex-column">
+
+                    <h2 class="h3 card-title text-center text-md-start mb-4">Aprende Jugando</h2>
+
+                    <div class="d-flex justify-content-around text-center mb-4">
+
+                        <a href="#" class="game-icon-link">
+                            <div class="game-icon shadow-sm">
+                                <i class="bi bi-mortarboard"></i>
+                            </div>
+                            <small>Aprende</small>
+                        </a>
+
+                        <a href="#" class="game-icon-link">
+                            <div class="game-icon shadow-sm">
+                                <i class="bi bi-search"></i>
+                            </div>
+                            <small>Descubre</small>
+                        </a>
+
+                        <a href="#" class="game-icon-link">
+                            <div class="game-icon shadow-sm">
+                                <i class="bi bi-puzzle-fill"></i>
+                            </div>
+                            <small>Juega</small>
+                        </a>
+                    </div>
+
+                    <a href="#" class="btn btn-outline-success w-100 mt-auto">Ver Todos los Juegos</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7 d-flex">
+            <div class="card h-100 w-100 shadow-sm section-card">
+                <div class="card-body p-4 p-md-5 d-flex flex-column">
+
+                    <h2 class="h3 card-title text-center text-md-start mb-4">Flora y Fauna Destacada</h2>
+
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+                            <div class="card featured-card">
+                                <img src="{% static 'img/orquidea.jpg' %}" class="card-img-top" alt="Orquídea de Tingo María">
+                                <div class="card-body-overlay">
+                                    <h5 class="card-title-small">Orquídeas de Tingo María</h5>
+                                </div>
+                                <a href="#" class="stretched-link" aria-label="Ver más sobre Orquídeas de Tingo María"></a>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card featured-card">
+                                <img src="{% static 'img/gallito_de_las_rocas.jpg' %}" class="card-img-top" alt="Ave Nacional del Perú">
+                                <div class="card-body-overlay">
+                                    <h5 class="card-title-small">Ave Nacional del Perú</h5>
+                                </div>
+                                <a href="#" class="stretched-link" aria-label="Ver más sobre el Ave Nacional del Perú"></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="#" class="btn btn-success w-100 mt-4">Saber Más</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block page_styles %}
+<link rel="stylesheet" href="{% static 'css/landing.css' %}">
+{% endblock page_styles %}
