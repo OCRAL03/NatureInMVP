@@ -1,0 +1,115 @@
+/* =================================== */
+/* --- 0. POSICIÓN DEL HEADER --- */
+/* =================================== */
+header {
+    /* Saca al header del flujo normal de la página */
+    position: absolute;
+
+    /* Lo pega a la parte superior */
+    top: 0;
+    left: 0;
+
+    /* Asegura que ocupe todo el ancho */
+    width: 100%;
+
+    /* Pone el header (10) por encima del resto (que es 0) */
+    z-index: 10;
+}
+
+/* El resto de tu header.css (.navbar-brand, .nav-link, etc.)
+  va aquí abajo, como ya lo tenías...
+*/
+
+/* =================================== */
+/* --- 1. Header y Fuentes --- */
+/* =================================== */
+
+:root {
+    --brand-green: #5cb85c;
+    --dark-green: #4a934a;
+    /* Definimos la fuente para los links.
+      Asegúrate de importar 'Poppins' en tu base.html
+    */
+    --font-links: 'Poppins', sans-serif;
+}
+
+/* Estilo para el logo (imagen) */
+.naturein-logo {
+    /* Ajusta la altura para que se vea bien en la barra */
+    height: 38px;
+    width: auto;
+    display: block;
+}
+
+/* Estilo para el contenedor del logo (la etiqueta <a>)
+  Esto asegura que no tenga paddings extraños.
+*/
+.navbar-brand {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+/* Estilo de los Links ("Inicio", "Flora", etc.) */
+.navbar .nav-link {
+    font-family: var(--font-links); /* <-- Usa Poppins */
+    font-weight: 500;
+    color: #555;
+    transition: color 0.2s ease-in-out;
+    margin: 0 0.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    position: relative;
+}
+
+.navbar .nav-link:hover {
+    color: var(--brand-green);
+}
+
+/* Línea verde inferior para el link ACTIVO */
+.navbar .nav-link.active {
+    color: var(--brand-green) !important;
+}
+
+.navbar .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 15%;
+    width: 70%;
+    height: 3px;
+    background-color: var(--brand-green);
+    border-radius: 2px;
+}
+
+/* =================================== */
+/* --- 2. Botones Estilos (Header) --- */
+/* =================================== */
+
+/* Botón "Registrarse" (verde) */
+.btn-success {
+    --bs-btn-bg: var(--brand-green);
+    --bs-btn-border-color: var(--brand-green);
+    --bs-btn-hover-bg: var(--dark-green);
+    --bs-btn-hover-border-color: var(--dark-green);
+    font-family: var(--font-links);
+    font-weight: 500;
+    border-radius: 0.5rem; /* Bordes redondeados */
+}
+
+/* Botón "Iniciar Sesión" (blanco) */
+.btn-outline-success {
+    --bs-btn-color: var(--brand-green);
+    --bs-btn-border-color: var(--brand-green);
+    --bs-btn-bg: #fff;
+    --bs-btn-hover-bg: var(--brand-green);
+    --bs-btn-hover-color: #fff;
+    font-family: var(--font-links);
+    font-weight: 500;
+    border-radius: 0.5rem; /* Bordes redondeados */
+}
+
+/* Ajuste general de botones en la barra */
+.navbar .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
