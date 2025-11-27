@@ -1,0 +1,81 @@
+{% extends 'Base/base.html' %}
+{% load static %}
+
+{% block hero_content %}
+<section class="hero-section position-relative mb-4">
+  <img src="{% static 'img/tingo.png' %}" alt="Hero" class="w-100 rounded-4 shadow hero-img">
+  <div class="hero-overlay"></div>
+  <div class="container hero-content text-white position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-start px-5">
+    <h2 class="display-5 fw-bold mb-3">Juegos Educativos para Aprender</h2>
+    <a href="{% url 'app_minigames:games' %}" class="btn btn-success btn-lg">Explora los Juegos</a>
+  </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <!-- Filtro -->
+    <aside class="col-md-3 mb-4">
+      <div class="card shadow-sm rounded-4 p-3">
+        <h5 class="mb-3">Explora por Categoría</h5>
+        <input type="text" class="form-control mb-2" placeholder="Buscar flora..." aria-label="Buscar flora">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="todos">
+          <label class="form-check-label" for="todos">Todos</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="helechos">
+          <label class="form-check-label" for="helechos">Helechos</label>
+        </div>
+      </div>
+    </aside>
+    <!-- Juegos -->
+    <section class="col-md-9">
+      <h3 class="mb-4">Nuestros Juegos Lúdicos</h3>
+      <div class="row g-4">
+        {% for juego in juegos %}
+          <div class="col-md-4">
+            <div class="card shadow-sm rounded-4 h-100">
+              {% if juego.imagen %}
+                <img src="{{ juego.imagen.url }}" class="card-img-top rounded-top-4" alt="Imagen del juego {{ juego.nombre }}">
+              {% else %}
+                <img src="{% static 'img/default_game.jpg' %}" class="card-img-top rounded-top-4" alt="Imagen por defecto">
+              {% endif %}
+              <div class="card-body">
+                <h5 class="card-title">{{ juego.nombre }}</h5>
+                <p class="card-text">{{ juego.descripcion }}</p>
+                {% if juego.external_tool %}
+                  <a class="btn btn-success btn-sm" href="{% url 'app_minigames:launch_educaplay' juego.id juego.external_tool.id %}">Jugar Ahora</a>
+                {% elif juego.url %}
+                  <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#juegoModal{{ juego.id }}">Jugar Ahora</button>
+                {% else %}
+                  <span class="text-muted small">Sin fuente de juego</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="modal fade" id="juegoModal{{ juego.id }}" tabindex="-1" aria-labelledby="juegoModalLabel{{ juego.id }}" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="juegoModalLabel{{ juego.id }}">{{ juego.nombre }}</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                  <iframe src="{{ juego.url }}" width="100%" height="600" frameborder="0" allowfullscreen></iframe>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="col-12">
+            <div class="alert alert-info">No hay juegos disponibles.</div>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

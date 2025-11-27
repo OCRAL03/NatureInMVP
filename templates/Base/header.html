@@ -1,0 +1,19 @@
+{% load static %}
+<header class="py-2 bg-white border-bottom">
+  <div class="container-fluid px-4">
+    <nav class="d-flex align-items-center justify-content-between">
+      <a class="navbar-brand" href="{% url 'core:landing' %}">
+        <img src="{% static 'img/naturein_logo.png' %}" alt="natureIn Logo" class="naturein-logo" style="height:32px;width:auto;">
+      </a>
+      <ul class="nav gap-4">
+        <li class="nav-item"><a class="nav-link text-dark fw-medium" href="#">Aprender</a></li>
+        <li class="nav-item"><a class="nav-link text-dark fw-medium" href="{% url 'app_minigames:games' %}">Jugar</a></li>
+        <li class="nav-item"><a class="nav-link text-dark fw-medium" href="#">Explorar</a></li>
+      </ul>
+      <div class="d-flex align-items-center">
+        <img src="{% static 'img/user.jpg' %}" alt="Usuario" class="rounded-circle me-2" style="height:32px;width:32px;object-fit:cover;">
+        <span class="fw-medium"> Usuario xd<i class="bi bi-chevron-down"></i></span>
+      </div>
+    </nav>
+  </div>
+</header> 

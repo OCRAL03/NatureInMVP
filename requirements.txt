@@ -1,0 +1,14 @@
+Django==5.2.7
+djangorestframework==3.16.1
+python-dotenv==1.1.1
+psycopg[binary]==3.2.3
+
+pylti1.3==0.8.0
+django-two-factor-auth==2.9.0
+django-otp==1.1.0
+django-storages[boto3]==2.2.0   # opcional S3
+django-filter
+django-environ
+django-cors-headers
+# search
+django-elasticsearch-dsl==7.4.0  # opcional

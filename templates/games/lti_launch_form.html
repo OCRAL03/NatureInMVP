@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Launching {{ juego.nombre }}</title></head>
+  <body>
+    <form id="ltiLaunchForm" action="{{ launch_url }}" method="post">
+      {% for k,v in form_params.items %}
+        <input type="hidden" name="{{ k }}" value="{{ v|escape }}">
+      {% endfor %}
+      <noscript><button type="submit">Launch</button></noscript>
+    </form>
+    <script>
+      document.getElementById('ltiLaunchForm').submit();
+    </script>
+  </body>
+</html>
