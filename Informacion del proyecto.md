@@ -1,5 +1,24 @@
 Informacion del proyecto 
 ### Abstracción Fundamental del Proyecto "NatureIn" para su Desarrollo
+\n+## NatureIn - Plataforma Educativa de Biodiversidad
+\n+Este documento detalla la arquitectura, decisiones técnicas y estándares del proyecto NatureIn.
+\n+### Stack Tecnológico
+\n+- Backend: Django (Python)
+- API: Django Rest Framework (DRF)
+- Base de Datos: PostgreSQL
+- Integración LTI: `pylti1p3` (Conexión con Moodle/Canvas)
+- Documentación API: Swagger / OpenAPI 3.0 (`drf-spectacular`)
+\n+### Política de Versionado y Estabilidad
+\n+Para garantizar la estabilidad en producción y trabajo colaborativo, el proyecto sigue una política de Dependencias Ancladas (Pinning).
+\n+- Criterios de Selección
+  - Django: Se mantiene en el rango `5.0 <= v < 5.2` para asegurar compatibilidad con librerías de terceros que aún no migran a versiones de borde.
+  - LTI: Se utiliza `pylti1p3` (versión 2.x) en lugar de la obsoleta `pylti1.3` para garantizar soporte de seguridad y estándares modernos.
+  - Límites superiores: Las librerías críticas tienen un límite `<X.Y` para evitar que actualizaciones automáticas introduzcan breaking changes.
+\n+- Gestión de Dependencias
+  - El archivo `requirements.txt` en la raíz es la única fuente de verdad.
+  - Instalación: `pip install -r requirements.txt`
+  - Limpieza: Ejecutar `python scripts/cleanup_project.py` para eliminar configuraciones duplicadas antiguas.
+
 
 El proyecto "NatureIn" es una plataforma educativa digital desarrollada por estudiantes de la Escuela Académica Profesional de Ingeniería en Informática y Sistemas de la Universidad Nacional Agraria de la Selva (UNAS), Perú, como parte de la asignatura de Ingeniería de Requisitos (docente: Ing. Christian García Villegas). Se enfoca en la educación ambiental sobre la biodiversidad local de Tingo María, integrando gamificación, contenidos interactivos y alineación con los Objetivos de Desarrollo Sostenible (ODS 4: Educación de calidad, ODS 15: Vida de ecosistemas terrestres). A continuación, abstraigo los elementos fundamentales del proyecto, organizados por categorías clave para guiar su desarrollo. Esta abstracción se basa en la documentación funcional proporcionada (páginas 1-3 del índice y estructura general), priorizando aspectos accionables para implementación (arquitectura, requisitos, módulos y metodología).
 
