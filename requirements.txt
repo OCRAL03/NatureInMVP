@@ -1,14 +1,25 @@
-Django==5.2.7
-djangorestframework==3.16.1
-python-dotenv==1.1.1
-psycopg[binary]==3.2.3
+## Corrección de dependencias y LTI
+# Rango actualizado: compatible con 5.0.x y 5.1.x
+Django>=5.0
+djangorestframework>=3.14.0
+drf-spectacular>=0.26.0
+django-filter>=23.0
+psycopg[binary]>=3.1.0
+requests>=2.32.3
+Pillow>=10.0.0
+python-dotenv>=1.0.0
 
-pylti1.3==0.8.0
-django-two-factor-auth==2.9.0
+# Corrección LTI (librería mantenida)
+pylti1p3>=2.0.0
+
+# Utilidades
+django-cors-headers>=4.0.0
+gunicorn>=21.2.0
+
+# Opcionales existentes
+django-two-factor-auth>=1.18.1
 django-otp==1.1.0
-django-storages[boto3]==2.2.0   # opcional S3
-django-filter
+django-storages[boto3]>=1.14.6   # opcional S3
 django-environ
-django-cors-headers
 # search
 django-elasticsearch-dsl==7.4.0  # opcional
