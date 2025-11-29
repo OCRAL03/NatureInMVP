@@ -1,0 +1,107 @@
+/* static/css/index_page.css */
+
+/* * Estilos Específicos de la Página de Inicio (Landing) * */
+
+/* Secciones de Contenido (Juegos y Flora/Fauna) */
+.section-card {
+    background-color: #fff; /* Fondo blanco para las tarjetas */
+    border-radius: 1rem;
+    border: none;
+    height: 100%;
+    padding-bottom: 0 !important; /* Quita el padding de abajo para el botón 'Ver Todos los Juegos' */
+}
+
+/* Iconos de Juegos */
+.game-icon-link {
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+}
+
+.game-icon {
+    width: 70px;
+    height: 70px;
+    background-color: #e9f5e9; /* Verde muy pálido */
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 0.5rem auto;
+    transition: all 0.2s ease-in-out;
+}
+
+.game-icon i {
+    font-size: 2rem;
+    color: var(--brand-green);
+}
+
+.game-icon-link:hover .game-icon {
+    background-color: var(--brand-green);
+    transform: scale(1.1);
+}
+
+.game-icon-link:hover .game-icon i {
+    color: #fff;
+}
+
+/* Tarjetas Destacadas (Flora/Fauna) */
+.featured-card {
+    position: relative;
+    border: none;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+
+.featured-card img {
+    height: 200px;
+    width: 100%; /* Asegura que la imagen ocupe todo el ancho */
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.featured-card:hover img {
+    transform: scale(1.05);
+}
+
+.card-body-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0));
+    padding: 1.5rem 1rem 1rem 1rem;
+}
+
+.card-title-small {
+    color: #fff;
+    font-weight: 500;
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
+
+/* Hero Section */
+.hero-section {
+    position: relative;
+    min-height: 340px;
+    margin-bottom: 2rem;
+}
+.hero-img {
+    object-fit: cover;
+    height: 340px;
+    border-radius: 1.5rem;
+}
+.hero-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(44,62,80,0.35);
+    border-radius: 1.5rem;
+}
+.container .card {
+    border-radius: 1.5rem;
+}
+.badge {
+    font-size: 0.85rem;
+    padding: 0.4em 0.8em;
+    border-radius: 0.7em;
+}

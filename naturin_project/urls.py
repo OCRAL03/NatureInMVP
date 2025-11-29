@@ -22,10 +22,10 @@ from django.conf.urls.static import static
 from core.views import landing
 
 urlpatterns = [
-    path('', landing, name='landing'),
+    path('', include('core.urls')),
     path('admin/', admin.site.urls),
     path('api/v1/ai/', include('app_ai.urls')),
-    path('api/v1/education/', include('app_education.urls')),
+    path('games/', include('app_minigames.urls')),
 ]
 
 if settings.DEBUG:

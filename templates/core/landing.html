@@ -1,0 +1,63 @@
+{% extends 'Base/base.html' %}
+{% load static %}
+
+{% block title %}Inicio - NatureIn{% endblock %}
+
+{% block hero_content %}
+    {%include 'Base/hero.html' %}
+{% endblock hero_content %}
+
+{% block content %}
+<div class="container my-5">
+  <div class="row g-4">
+
+    <div class="col-md-6">
+      <div class="card shadow-sm rounded-4 h-100 p-4">
+        <h2 class="h4 fw-bold mb-4 text-center">Tu Aventura de Conocimiento</h2>
+        <div class="d-flex justify-content-center gap-4 mb-4">
+          <div class="text-center">
+            <div class="bg-light rounded-circle p-3 mb-2 border border-success"><i class="bi bi-search fs-2 text-success"></i></div>
+            <div class="small fw-medium">Explora Guías</div>
+          </div>
+          <div class="text-center">
+            <div class="bg-light rounded-circle p-3 mb-2 border border-success"><i class="bi bi-star fs-2 text-success"></i></div>
+            <div class="small fw-medium">Crea Proyectos</div>
+          </div>
+        </div>
+        <a href="#" class="btn btn-success w-100">Ver Todos los Retos</a>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card shadow-sm rounded-4 h-100 p-4">
+        <h2 class="h4 fw-bold mb-4 text-center">Especies Destacadas</h2>
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="card position-relative border-0 rounded-3 overflow-hidden h-100">
+              <img src="{% static 'img/orquidea.jpg' %}" class="card-img-top" alt="Orquídea de Tingo María" style="height:120px;object-fit:cover;">
+              <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-2 fw-bold">¡ENDÉMICA!</span>
+              <div class="card-body p-2">
+                <div class="small fw-medium text-center">Orquídeas de Tingo María</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="card position-relative border-0 rounded-3 overflow-hidden h-100">
+              <img src="{% static 'img/gallito_de_las_rocas.jpg' %}" class="card-img-top" alt="Ave Nacional del Perú" style="height:120px;object-fit:cover;">
+              <span class="badge bg-danger position-absolute top-0 start-0 m-2 fw-bold">¡CLAVE!</span>
+              <div class="card-body p-2">
+                <div class="small fw-medium text-center">Ave Nacional del Perú</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <a href="#" class="btn btn-success w-100 mt-3">Saber Más</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block page_styles %}
+<link rel="stylesheet" href="{% static 'css/landing.css' %}">
+{% endblock page_styles %}

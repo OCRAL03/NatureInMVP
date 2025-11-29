@@ -1,0 +1,123 @@
+/* static/css/footer.css */
+
+.site-footer-light {
+    background-color: var(--light-bg);
+    color: #555;
+    padding-top: 2.5rem; /* Reducido de 4rem */
+    width: 100%;
+    position: relative;
+    z-index: 2;
+}
+
+.footer-logo {
+    height: 35px; /* Ligeramente más pequeño */
+    width: auto;
+    opacity: 0.9;
+}
+
+.footer-title {
+    color: #222;
+    font-weight: 500;
+    font-size: 0.9rem; /* Títulos más pequeños */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.8rem; /* Reducido de 1.25rem */
+}
+
+.footer-link {
+    color: #555;
+    text-decoration: none;
+    font-size: 0.85rem; /* Links más pequeños */
+    line-height: 1.6; /* Espaciado de línea reducido */
+    transition: all 0.2s ease;
+}
+
+.footer-link:hover {
+    color: var(--brand-green);
+    padding-left: 5px;
+}
+
+/* Para reducir el espacio entre elementos de lista */
+.footer-list-small li {
+    margin-bottom: 0; /* Asegura que no haya margen inferior extra */
+}
+
+
+.social-links-section-light .social-icon {
+    color: #888;
+    font-size: 1.2rem; /* Iconos más pequeños */
+    margin-right: 0.8rem; /* Espacio reducido entre iconos */
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.social-links-section-light .social-icon:hover {
+    color: var(--brand-green);
+    transform: translateY(-2px);
+}
+
+.copyright-bar-light {
+    background-color: #e9ecef;
+    padding: 1rem 0; /* Reducido de 1.5rem */
+    margin-top: 1.5rem; /* Reducido de 2rem */
+    font-size: 0.8rem; /* Texto de copyright más pequeño */
+    color: #777;
+}
+
+/* Footer ODS styles */
+.footer-ods {
+    background: #fff;
+    font-size: 1rem;
+    border-radius: 0 0 1rem 1rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+}
+
+.ods-badge {
+    display: inline-block;
+    padding: 0.3em 1em;
+    margin: 0 0.2em 0.3em 0;
+    border-radius: 1em;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border: 1px solid #d1e7dd;
+    background: #f8fdf8;
+    color: #4a934a;
+    vertical-align: middle;
+}
+
+.ods-green {
+    background: #e6f9ec;
+    border-color: #b6e5c9;
+    color: #4a934a;
+}
+.ods-lightgreen {
+    background: #f7ffe6;
+    border-color: #e5f9b6;
+    color: #7bb13c;
+}
+.ods-blue {
+    background: #f0f7ff;
+    border-color: #b6d9f9;
+    color: #2a7be4;
+}
+
+.footer-link-ods {
+    color: #555;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+}
+.footer-link-ods:hover {
+    color: #5cb85c;
+    text-decoration: underline;
+}
+
+@media (max-width: 767.98px) {
+    .footer-ods .row > div {
+        margin-bottom: 0.5rem;
+    }
+    .ods-badge {
+        display: block;
+        margin: 0.2em auto;
+    }
+}

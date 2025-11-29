@@ -1,0 +1,15 @@
+{% load static %}
+<section class="hero-section position-relative mb-4">
+  <img src="{% block hero_image %}{% static 'img/tingo.png' %}{% endblock %}" alt="{% block hero_alt %}Vista aérea de Tingo María{% endblock %}" class="w-100 rounded-4 shadow hero-img" style="height:340px;object-fit:cover;">
+  <div class="hero-overlay" style="background:rgba(44,62,80,0.35);position:absolute;top:0;left:0;width:100%;height:100%;border-radius:1.5rem;"></div>
+  <div class="container position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center" style="z-index:2;">
+    <h1 class="display-5 fw-bold text-white mb-3 text-center" style="text-shadow:0 2px 8px rgba(0,0,0,0.2);">{% block hero_title %}Descubre la Biodiversidad de Tingo María{% endblock %}</h1>
+    {% block hero_buttons %}
+      <a href="#" class="btn btn-success btn-lg mb-3">Explora Ahora</a>
+      <div class="d-flex gap-3">
+        <a href="#" class="btn btn-light border-success text-success fw-medium px-4">Iniciar Exploración</a>
+        <a href="#" class="btn btn-light border-success text-success fw-medium px-4">Ver Guías de Estudio</a>
+      </div>
+    {% endblock %}
+  </div>
+</section>
