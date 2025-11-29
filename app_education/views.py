@@ -1,6 +1,5 @@
-from rest_framework.viewsets import ViewSet
-from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import viewsets
+from rest_framework.filters import SearchFilter, OrderingFilter
 
 from drf_spectacular.utils import (
     extend_schema,
@@ -8,11 +7,30 @@ from drf_spectacular.utils import (
     OpenApiExample,
 )
 
+from .models import Fichas
+from .serializers import FichasSerializer
+from .filters import FichaFilterSet
+from .backends import StrictDjangoFilterBackend
+from rest_framework.response import Response
+import sys
+class FichasViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Fichas.objects.all().order_by("id")
+    serializer_class = FichasSerializer
 
-class FichasViewSet(ViewSet):
-    """
-    Listado de Fichas educativas con filtros estrictos documentados.
-    """
+    # Filtros estrictos + búsqueda y ordenamiento
+    filter_backends = [StrictDjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = FichaFilterSet
+
+    search_fields = [
+        "titulo",
+        "descripcion",
+        "especie__nombre_comun",
+        "especie__nombre_cientifico",
+        "categoria__categoria",
+    ]
+
+    ordering_fields = ["titulo", "id"]
+    ordering = ["titulo"]
 
     @extend_schema(
         summary="Listar Fichas",
@@ -53,7 +71,17 @@ class FichasViewSet(ViewSet):
             )
         ],
     )
-    def list(self, request):
-        # Para garantizar 200 OK incluso sin migraciones/datos,
-        # devolvemos lista vacía. Integración futura: conectar ORM y filtros.
-        return Response([], status=status.HTTP_200_OK)
+
+    def list(self, request, *args, **kwargs):
+        # Aplica filtros estrictos + búsqueda + ordenamiento
+        queryset = self.filter_queryset(self.get_queryset())
+
+        # Paginación si está configurada
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        # Sin paginación: retorna lista completa
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

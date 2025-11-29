@@ -1,5 +1,3 @@
-from django import forms
-import django_filters
 from django_filters import rest_framework as drf_filters
 
 from .models import Fichas
@@ -34,14 +32,6 @@ class FichaFilterSet(drf_filters.FilterSet):
         field_name="categoria_id",
         choices=CATEGORY_CHOICES,
         label="Categoria",
-        field_class=forms.TypedChoiceField,
-        field_kwargs={
-            "coerce": int,
-            "empty_value": None,
-            "error_messages": {
-                "invalid_choice": "Categoría %(value)s no válida. Opciones: 1, 2",
-            },
-        },
     )
 
     # Alias amigable: especie (ID numerico >= 1)
@@ -56,14 +46,6 @@ class FichaFilterSet(drf_filters.FilterSet):
         field_name="nivel_educativo_id",
         choices=NIVEL_CHOICES,
         label="Nivel Educativo",
-        field_class=forms.TypedChoiceField,
-        field_kwargs={
-            "coerce": int,
-            "empty_value": None,
-            "error_messages": {
-                "invalid_choice": "Nivel Educativo %(value)s no válido. Opciones: 2 (Secundaria)",
-            },
-        },
     )
 
     # Alias amigable: grado (1°/2° Secundaria)
@@ -71,14 +53,6 @@ class FichaFilterSet(drf_filters.FilterSet):
         field_name="grado_educativo_id",
         choices=GRADO_CHOICES,
         label="Grado",
-        field_class=forms.TypedChoiceField,
-        field_kwargs={
-            "coerce": int,
-            "empty_value": None,
-            "error_messages": {
-                "invalid_choice": "Grado %(value)s no válido. Opciones: 1, 2",
-            },
-        },
     )
 
     # Compatibilidad con parametros originales (IDs crudos)
