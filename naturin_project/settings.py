@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'drf_spectacular',
     'core',
     'app_users',
     'app_education',
@@ -82,10 +83,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'naturin_project.wsgi.application'
 
 # Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-db_engine = os.getenv('DB_ENGINE', 'postgresql').lower()
-DATABASES = {
+db_engine = os.getenv('DB_ENGINE', 'sqlite').lower()
+if db_engine in ('postgres', 'postgresql', 'psql'):
+    DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': os.getenv('DB_NAME', 'naturein_db'),
@@ -94,7 +94,14 @@ DATABASES = {
             'HOST': os.getenv('DB_HOST', 'localhost'),
             'PORT': os.getenv('DB_PORT', '5432'),
         }
-}
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -148,4 +155,50 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SAMESITE = 'None'      
 CSRF_COOKIE_SAMESITE = 'None'
+
+# REST Framework / Schema
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_FILTER_BACKENDS': [
+        'app_education.backends.StrictDjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'NatureIn API',
+    'DESCRIPTION': (
+        'API para gestión de contenido educativo y biodiversidad de Tingo María.\n\n'
+        'Ejemplo rápido (curl):\n'
+        '`curl -X GET http://127.0.0.1:8001/api/v1/education/fichas/`'
+    ),
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    # Enums reutilizables para parámetros/documentación
+    'ENUM_NAME_OVERRIDES': {
+        'CategoriaEnum': [1, 2],
+        'NivelEducativoEnum': [1, 2, 3],
+        'GradoEnum': [1, 2, 3, 4, 5, 6],
+    },
+    'APPEND_COMPONENTS': {
+        'schemas': {
+            'CategoriaEnum': {
+                'type': 'integer',
+                'enum': [1, 2],
+                'description': 'ID de categoría educativa permitida.'
+            },
+            'NivelEducativoEnum': {
+                'type': 'integer',
+                'enum': [1, 2, 3],
+                'description': 'ID de nivel educativo permitido.'
+            },
+            'GradoEnum': {
+                'type': 'integer',
+                'enum': [1, 2, 3, 4, 5, 6],
+                'description': 'ID de grado educativo permitido.'
+            },
+        }
+    },
+}
 

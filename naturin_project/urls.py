@@ -20,12 +20,22 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from core.views import landing
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularSwaggerView,
+    SpectacularRedocView,
+)
 
 urlpatterns = [
     path('', include('core.urls')),
     path('admin/', admin.site.urls),
     path('api/v1/ai/', include('app_ai.urls')),
+    path('api/v1/education/', include('app_education.urls')),
     path('games/', include('app_minigames.urls')),
+    # Documentación
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
 
 if settings.DEBUG:
