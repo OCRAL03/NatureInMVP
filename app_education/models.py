@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from core.mixins.soft_delete import SoftDeleteMixin
 
 class TipoActividad(models.Model):
     tipo_actividad = models.CharField(max_length=100)
@@ -27,7 +28,7 @@ class Aulas(models.Model):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     ficha = models.ForeignKey('Fichas', null=True, blank=True, on_delete=models.CASCADE)
 
-class Fichas(models.Model):
+class Fichas(SoftDeleteMixin, models.Model):
     titulo = models.CharField(max_length=100)
     descripcion = models.TextField(null=True, blank=True)
     categoria = models.ForeignKey('app_taxonomy.Categoria', null=True, blank=True, on_delete=models.CASCADE)
