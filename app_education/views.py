@@ -14,7 +14,7 @@ from .backends import StrictDjangoFilterBackend
 from rest_framework.response import Response
 import sys
 class FichasViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Fichas.objects.all().order_by("id")
+    queryset = Fichas.objects.filter(is_active=True).order_by("id")
     serializer_class = FichasSerializer
 
     # Filtros estrictos + búsqueda y ordenamiento

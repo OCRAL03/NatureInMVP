@@ -20,6 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from core.views import landing
+from core.feature_flags import is_enabled
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularSwaggerView,
@@ -31,12 +32,14 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/ai/', include('app_ai.urls')),
     path('api/v1/education/', include('app_education.urls')),
-    path('games/', include('app_minigames.urls')),
     # Documentación
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
+
+if is_enabled("ENABLE_GAMIFICATION", default=True):
+    urlpatterns += [path('games/', include('app_minigames.urls'))]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -34,6 +34,12 @@ class Fichas(models.Model):
     especie = models.ForeignKey('app_taxonomy.Especies', null=True, blank=True, on_delete=models.CASCADE)
     nivel_educativo = models.ForeignKey(NivelEducativo, on_delete=models.CASCADE)
     grado_educativo = models.ForeignKey(GradoDeNivelEducativo, on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True, db_index=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['titulo']),
+        ]
 
 class Actividades(models.Model):
     titulo = models.CharField(max_length=100, null=True, blank=True)
