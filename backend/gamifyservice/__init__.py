@@ -1,0 +1,1 @@
+"""GamifyService app"""

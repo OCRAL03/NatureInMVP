@@ -1,0 +1,478 @@
+\documentclass[12pt,a4paper]{book}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{geometry}
+\usepackage{enumitem}
+\geometry{margin=2.5cm}
+
+\title{Informe: Proyecto ``NatureIn'' -- Requisitos del Sistema (Versión Refocalizada)}
+\author{Tapullima Serna, Meselemias \\ Valles Sevillano, Alan Samuel \\ Gavilan Paucar, Adriel Jeremy \\ Zelaya Albornoz, Anali Amy \\ Zegarra Martel, Juber Richard}
+\date{Tingo Mar\'ia -- Per\'u \\ Diciembre 2025}
+
+\begin{document}
+
+\maketitle
+
+\frontmatter
+\tableofcontents
+
+\mainmatter
+
+\chapter{Product Backlog de los requisitos funcionales}
+
+\section{Backlog General (Actualizado)}
+
+Se han modificado los requisitos para alinearse con la nueva arquitectura en capas con microservicios (Django backend, React/Vite frontend), eliminando módulos de aulas y rol docente para creación de fichas. Ahora, fichas se generan vía APIs (GBIF para taxonomía, iNaturalist para imágenes/avistamientos, EOL/Wikidata para descripciones). Roles: Estudiante, Docente (limitado a métricas), Experto (edición fichas), Admin (interno). Se incorporan chatbot Llama adaptado por rol y gamificación con Educaplay API.
+
+\begin{longtable}{|l|l|l|l|l|}
+\hline
+ID & REQUISITOS & FUENTE & PRIORIDAD & IMPLEMENTADO/SUGERENCIAS \\
+\hline
+RF-01 & Gesti\'on de roles de usuario (Estudiante, Docente, Experto, Admin) & AC-01 & Alta & Implementado al 100\% con 4 roles y permisos granularizados en microservicio AuthService \\
+\hline
+RF-02 & Fichas educativas multimedia generadas vía APIs externas & AC-01 & Alta & Carga optimizada (1.8s por ficha), integración con GBIF/iNaturalist/EOL, edición por Expertos \\
+\hline
+RF-03 & Autenticaci\'on y autorizaci\'on & AC-01 & Alta & Funcional con JWT+AES-256 en AuthService, login en 1.2s (50 usuarios concurrentes) \\
+\hline
+RF-05 & Registro de especies vía APIs & AC-01 & Alta & Integrado con b\'usqueda avanzada, validaci\'on vía GBIF \\
+\hline
+RF-06 & Flujo de navegaci\'on entre m\'odulos & AC-01 & Alta & Reducci\'on del 30\% en clics en React/Vite, tiempos $<$2s en m\'odulos multimedia \\
+\hline
+RF-07 & Historias de usuario funcionales & AC-01 & Media & Cubre el 100\% de casos de uso adaptados, 70\% confianza en pruebas \\
+\hline
+RF-08 & Evaluaci\'on del progreso del estudiante & AC-01 & Alta & Reportes en 1.8s con 90\% precisi\'on en UserService, filtros por fecha pendientes \\
+\hline
+RF-09 & Vistas personalizadas seg\'un rol & AC-01 & Media & Dashboards en 2.8s (20\% mejor) en React, adaptado a minimalismo \\
+\hline
+RF-10 & Definici\'on de criterios de aceptaci\'on & AC-01 & Alta & Documentado, actualizado para microservicios y patrones de diseño \\
+\hline
+RF-11 & Modularidad del sistema con microservicios & AC-02 & Alta & Arquitectura en capas validada (AuthService, ContentService, etc.), Docker/K8s \\
+\hline
+RF-12 & Adaptaci\'on por nivel educativo & AC-02 & Media & Adaptado para secundaria, alineado con DCN 2025 vía prompts en chatbot \\
+\hline
+RF-13 & Base de datos relacional (PostgreSQL) & AC-02 & Alta & naturein\_database implementado con modelo normalizado, \'indices optimizados \\
+\hline
+RF-14 & Modelo de datos estructurado & AC-03 & Alta & Estructura validada, enfocado en taxonomía y gamificación \\
+\hline
+RF-15 & Asociaci\'on de contenidos & AC-03 & Alta & Asociaci\'on b\'asica con APIs, sistema de recomendaciones en ContentService \\
+\hline
+RF-16 & Acceso a Fichas Multimedia & AC-04 & Media & Acceso en 1.5s vía iNaturalist, cach\'e en Redis \\
+\hline
+RF-17 & Panel de Seguimiento Docente (métricas básicas) & AC-04 & Alta & Muestra m\'etricas en dashboard React, integración con GamifyService \\
+\hline
+RF-18 & Configuraci\'on de Notificaciones Personalizadas & AC-04 & Alta & Configurable en UserService, push vía WebSockets \\
+\hline
+RF-19 & Interfaz Amigable para Ni\~nos (minimalista) & AC-04 & Media & Validado con Tailwind CSS/Framer Motion, accesible $<$13 a\~nos \\
+\hline
+RF-20 & Evaluaciones en Tiempo Real & AC-04 & Alta & Funcional para quizzes Educaplay, latencia $<$3s en microservicios \\
+\hline
+RF-21 & Lecturas cient\'ificas & AC-04 & Media & Base de 150 lecturas vía EOL, dificultad progresiva con chatbot \\
+\hline
+RF-22 & Compartir logros parentales & AC-04 & Alta & Implementado, adopci\'on 15\% (mejorar UI) \\
+\hline
+RF-23 & Sistema de Recompensa Virtual (Educaplay) & AC-04 & Alta & Insignias con LTI/iframe, conexión con activity\_completed \\
+\hline
+RF-24 & Dashboard de Rendimiento Grupal & AC-04 & Media & Métricas básicas en React (tarjetas/barras), fallback demo \\
+\hline
+RF-25 & Mapas Interactivos de Especies & AC-04 & Alta & Carga en 3.5s con Leaflet, datos de iNaturalist \\
+\hline
+RF-26 & Banco de Recursos Audiovisuales & AC-04 & Alta & 80\% recursos de APIs, compresi\'on en ContentService \\
+\hline
+RF-27 & Sistema de Niveles Gamificado & AC-04 & Alta & Niveles 1-5 con GamifyService real, ranking por puntos \\
+\hline
+RF-28 & Protecci\'on de Datos Infantiles & AC-04 & Media & GDPR/COPPA en AuthService, consentimiento parental \\
+\hline
+RF-29 & Organizaci\'on de Contenidos por Categor\'ias & AC-04 & Alta & 10 categor\'ias, tags al 70\% \\
+\hline
+RF-30 & Recomendaciones Personalizadas de Contenido & AC-04 & Alta & Algoritmo 65\% precisi\'on, basado en progreso \\
+\hline
+RF-31 & Acceso Sencillo a Reportes de Progreso & AC-04 & Alta & 2 clics, export CSV/PDF en UserService \\
+\hline
+RF-32 & Narraci\'on de Descripciones de Animales & AC-04 & Alta & Para 50 especies vía Wikidata, sincronizaci\'on iOS \\
+\hline
+RF-33 & Creaci\'on de Grupos Colaborativos & AC-04 & Alta & Grupos hasta 15, sin aulas (microgrupos para misiones) \\
+\hline
+RF-34 & Foro de Discusi\'on Estudiantil & AC-04 & Media & Participaci\'on 35\%, moderado por Expertos \\
+\hline
+RF-35 & Personalizaci\'on de Avatar & AC-04 & Alta & 20 avatares, UI React \\
+\hline
+RF-36 & Gamificaci\'on de Actividades Educativas (Educaplay) & AC-04 & Alta & 5 juegos LTI, puntuaci\'on balanceada \\
+\hline
+RF-37 & Personalizaci\'on de Tareas por Nivel & AC-04 & Media & 3 niveles, contenido secundaria vía APIs \\
+\hline
+RF-38 & Guardado de Avances & AC-04 & Alta & Autom\'atico cada 3min, historial en Progreso \\
+\hline
+RF-39 & Recomendaciones de Contenido Extracurricular & AC-04 & Alta & 70\% relevancia, filtros parentales pendientes \\
+\hline
+RF-40 & Secci\'on de Preguntas Frecuentes & AC-04 & Alta & 25 entradas, b\'usqueda optimizada \\
+\hline
+RF-41 & Visualizaci\'on de Ranking & AC-04 & Media & Visible para Docentes, ocultamiento opci\'on \\
+\hline
+RF-42 & Actividades aut\'onomas & AC-04 & Alta & 12 actividades, retroalimentaci\'on 3 pendientes \\
+\hline
+RF-43 & Desaf\'ios adicionales & AC-04 & Alta & 8 desaf\'ios, escalable autom\'aticamente \\
+\hline
+RF-44 & Recomendaciones para Padres & AC-04 & Media & Gen\'ericas, personalizaci\'on por perfil \\
+\hline
+RF-45 & Compartir Logros en Redes Sociales & AC-04 & Alta & Facebook/Twitter, Instagram pendiente \\
+\hline
+RF-46 & Notificaciones de Logros Destacados & AC-04 & Media & Push, priorizaci\'on sistema \\
+\hline
+RF-47 & Acceso a Contenido Complementario & AC-04 & Alta & 85\% relacionado, recursos pesados optimizados \\
+\hline
+RF-48 & Alertas de Inactividad & AC-04 & Alta & Cada 15min, personalizable \\
+\hline
+RF-49 & Control de Especies en Peligro & AC-04 & Media & Filtro b\'asico, listados GBIF \\
+\hline
+RF-50 & Clasificaci\'on taxon\'omica avanzada & AC-04 & Alta & Hasta familia vía GBIF \\
+\hline
+RF-51 & Revisi\'on de Contenido Estudiantil & AC-04 & Alta & Moderaci\'on por Expertos, flags AI \\
+\hline
+RF-52 & Visualizaci\'on de Fichas Creadas & AC-04 & Media & B\'asica, filtrado avanzado \\
+\hline
+RF-53 & Edici\'on de Fichas por Expertos & AC-04 & Media & En l\'inea, historial cambios \\
+\hline
+RF-54 & Eliminaci\'on de Fichas & AC-04 & Alta & Cascada, confirmaci\'on 2 pasos \\
+\hline
+RF-55 & Subida de Im\'agenes para Fichas & AC-04 & Alta & 5MB, compresi\'on, fallback iNaturalist \\
+\hline
+RF-56 & Subida de Sonidos de Especies & AC-04 & Alta & MP3/WAV 2MB, optimizaci\'on \\
+\hline
+RF-57 & Revisi\'on de Avistamientos Estudiantiles & AC-04 & Media & Manual por Expertos, validaci\'on comunitaria \\
+\hline
+RF-58 & Configuraci\'on de Perfil Experto & AC-04 & Alta & 12 campos, LinkedIn pendiente \\
+\hline
+RF-59 & Notificaciones de Nuevos Avistamientos & AC-04 & Alta & Sin duplicados \\
+\hline
+RF-60 & Vista Previa de Fichas & AC-04 & Media & B\'asica, pantalla completa \\
+\hline
+RF-61 & Sistema de B\'usqueda Avanzada de Especies & AC-04 & Alta & Filtros taxonom\'ia/h\'abitat, 1.8s \\
+\hline
+RF-62 & Generador de Cuestionarios Din\'amicos & AC-04 & Media & 5 plantillas, editor arrastrar/soltar \\
+\hline
+RF-63 & M\'odulo de Realidad Aumentada para Especies & AC-04 & Alta & Android/iOS, 60\% completado \\
+\hline
+RF-64 & Sistema de Alertas de Actualizaci\'on & AC-04 & Alta & Descarga segundo plano \\
+\hline
+RF-65 & Foro educativo moderado & AC-04 & Media & AI spam detector \\
+\hline
+RF-66 & Panel de Progreso Parental & AC-04 & Alta & 8 m\'etricas, widgets personalizables \\
+\hline
+RF-67 & Sistema de Progresi\'on de Misiones & AC-04 & Alta & 3 tipos, sincronizaci\'on equipos \\
+\hline
+RF-68 & Herramienta de An\'alisis de Avistamientos & AC-04 & Media & Gr\'aficos, GIS integraci\'on \\
+\hline
+RF-69 & Personalizaci\'on de Interfaz por Edad & AC-04 & Media & 3 perfiles, testeo real \\
+\hline
+RF-70 & Biblioteca de Recursos Descargables & AC-04 & Alta & ZIP 100MB, versiones gesti\'on \\
+\hline
+RF-71 & Recuperaci\'on de contrase\~na & AC-05 & Media & Email, dominios .edu resueltos \\
+\hline
+RF-72 & Manejo de errores de autenticaci\'on & AC-05 & Alta & Mensajes localizados (quechua/aymara) \\
+\hline
+RF-73 & Autenticaci\'on segura & AC-05 & Alta & JWT/HTTPS, biom\'etrica pendiente \\
+\hline
+RF-74 & Identificaci\'on del rol del usuario & AC-05 & Alta & 100\%, auditor\'ia \\
+\hline
+RF-75 & Restricci\'on de acceso seg\'un rol & AC-05 & Media & 15 reglas, gesti\'on visual \\
+\hline
+RF-76 & Registro de sesiones activas & AC-05 & Alta & Logs, SIEM integraci\'on \\
+\hline
+RF-77 & Renderizado de vistas seg\'un rol & AC-06 & Alta & Optimizado React, cach\'e cambios \\
+\hline
+RF-78 & Accesibilidad en interfaces & AC-06 & Media & WCAG 2.1 AA 80\%, formularios \\
+\hline
+RF-79 & Navegaci\'on contextual por rol & AC-06 & Alta & Men\'us din\'amicos, indicador visual \\
+\hline
+RF-80 & Priorizaci\'on de contenido relevante & AC-06 & Media & ML algoritmo 70\% \\
+\hline
+RF-81 & Optimizaci\'on de rendimiento de vistas & AC-06 & Alta & Cach\'e L2, 25\% reducci\'on \\
+\hline
+RF-82 & Vistas diferenciadas por rol & AC-06 & Alta & 12 vistas, 3 dise\~no pendiente \\
+\hline
+RF-83 & Interfaz adaptativa & AC-06 & Media & Responsive 92\%, tablets \\
+\hline
+RF-84 & Ocultamiento de funciones no aplicables & AC-06 & Alta & Filtrado, tooltips \\
+\hline
+RF-85 & Tematizaci\'on visual por rol & AC-06 & Alta & 4 temas, selector \\
+\hline
+RF-86 & Respuesta r\'apida en el cambio de vistas & AC-06 & Media & $<$1s 90\%, gr\'aficos \\
+\hline
+RF-87 & Resumen de informaci\'on por rol & AC-07 & Media & Dashboard, export imagen \\
+\hline
+RF-88 & Botones de acci\'on r\'apida & AC-07 & Alta & 5 acciones, personalizaci\'on \\
+\hline
+RF-89 & Actualizaci\'on de datos en tiempo real & AC-07 & Alta & WebSockets, bater\'ia 30\% \\
+\hline
+RF-90 & Mensaje de ayuda inicial & AC-07 & Alta & Gu\'ia interactiva, progreso guardado \\
+\hline
+RF-91 & Dashboard personalizad por usuario & AC-07 & Alta & 6 widgets, l\'imite 3 \\
+\hline
+RF-92 & Accesos r\'apidos seg\'un uso frecuente & AC-07 & Media & Recomienda 5, 60\% precisi\'on \\
+\hline
+RF-93 & Visualizaci\'on de m\'etricas relevantes & AC-07 & Alta & 10 KPIs, personalizada \\
+\hline
+RF-94 & Informaci\'on din\'amica & AC-07 & Alta & Cada 5min, configurable \\
+\hline
+RF-99 & Ingreso de calificaciones & AC-09 & Alta & R\'bricas, import masiva (adaptado a progreso gamificado) \\
+\hline
+RF-100 & Gr\'aficos de progreso estudiantil & AC-09 & Alta & 4 tipos, comparativa grupal \\
+\hline
+RF-101 & Reportes semanales para padres & AC-09 & Alta & Autom\'atica, timezone resuelto \\
+\hline
+RF-102 & Alertas de bajo rendimiento & AC-09 & Media & Umbral, notificaci\'on escalonada \\
+\hline
+RF-103 & Exportaci\'on de reportes & AC-09 & Alta & PDF/CSV, Google Drive \\
+\hline
+RF-104 & Paleta de colores accesible & AC-10 & Alta & Contraste 4.5:1 95\% \\
+\hline
+RF-105 & Dise\~no responsivo & AC-10 & Media & 92\% dispositivos \\
+\hline
+RF-106 & Navegaci\'on por teclado & AC-10 & Alta & 80\% m\'odulos \\
+\hline
+RF-107 & Compatibilidad con lectores de pantalla & AC-10 & Media & NVDA/JAWS, tablas \\
+\hline
+RF-108 & Gu\'ia interactiva de bienvenida & AC-10 & Alta & 50\% reducci\'on confusi\'on \\
+\hline
+RF-109 & Registro y autenticaci\'on de usuarios con validaci\'on de correo & AC-11 & Alta & 85\% \'exito \\
+\hline
+RF-110 & Juego de identificaci\'on de especies con retroalimentaci\'on inmediata & AC-11 & Media & 100 especies Educaplay, 78\% precisi\'on \\
+\hline
+RF-111 & Fichas de especies con b\'usqueda por nombre y categor\'ia & AC-11 & Alta & Motor, voz pendiente \\
+\hline
+RF-112 & Reporte b\'asico de actividad estudiantil con filtros & AC-11 & Alta & 3 filtros, fechas personalizadas \\
+\hline
+RF-113 & Panel de navegaci\'on adaptad a roles con accesos directos & AC-11 & Media & Men\'u, atajos teclado \\
+\hline
+RF-114 & M\'odulo de contenidos alinead con competencias del DCN 2025 & AC-12 & Media & 70\% cubiertas \\
+\hline
+RF-115 & Desaf\'io gamificado de investigaci\'on cient\'ifica & AC-12 & Alta & 8 misiones, balance \\
+\hline
+RF-116 & Biblioteca multimedia con actividades interactivas por especie & AC-12 & Alta & 120 recursos, 15\% sin actividades \\
+\hline
+RF-117 & Panel de evaluaci\'on docente con estad\'isticas avanzadas & AC-12 & Alta & 5 gr\'aficos, export personalizada \\
+\hline
+RF-118 & Secci\'on de reflexi\'on ambiental con evaluaci\'on ODS & AC-12 & Media & 3 ODS, ampliaci\'on 5 \\
+\hline
+RF-119 & Trivia gamificada para identificaci\'on de especie & AC-13 & Alta & 200 preguntas, adaptativa \\
+\hline
+RF-120 & Desaf\'io gamificado de investigaci\'on ecol\'ogica & AC-13 & Media & 4 escenarios, guardado autom\'atico \\
+\hline
+RF-121 & Sistema de recompensas con insignias y certificados & AC-13 & Alta & 15 insignias, PDF marca agua, /api/v1/gamification/award/ \\
+\hline
+RF-122 & Gu\'ias pedag\'ogicas descargables para docentes & AC-13 & Media & 8 PDF, editable Google Docs \\
+\hline
+RF-123 & Trivia gamificada para identificaci\'on de especie & AC-13 & Alta & 200 preguntas, adaptativa \\
+\hline
+RF-124 & Redefinir el alcance funcional del sistema seg\'un nuevas prioridades & AC-14 & Alta & Alcance v2.1, microservicios/APIs \\
+\hline
+RF-125 & Mantener trazabilidad de funcionalidades eliminadas o modificadas & AC-14 & Media & JIRA, hist\'orico consolidado \\
+\hline
+RF-126 & Consolidar un prototipo funcional m\'inimo (MVP) validado & AC-14 & Alta & v0.8, validaci\'on 3 colegios \\
+\hline
+RF-127 & Generar un resumen ejecutivo con el nuevo alcance funcional & AC-14 & Alta & 15 p\'aginas, ingl\'es \\
+\hline
+RF-128 & Actualizar el cronograma del proyecto en funci\'on del nuevo alcance & AC-14 & Media & Gantt, desfase 2 semanas \\
+\hline
+RF-129 & Reestructurar el backend y los m\'odulos para alinearlos al nuevo alcance & AC-15 & Media & Migraci\'on 70\%, Django microservicios \\
+\hline
+RF-130 & Eliminar funcionalidades y c\'odigo no alineados con el nuevo modelo & AC-15 & Alta & Limpieza 8 m\'odulos, 3 legacy (aulas eliminadas) \\
+\hline
+RF-131 & Actualizar las vistas e interfaces de usuario para reflejar la nueva arquitectura & AC-15 & Alta & 45/60 pantallas React/Vite \\
+\hline
+RF-132 & Consolidar un prototipo funcional m\'inimo (MVP) validado & AC-15 & Alta & v0.9, 85\% casos cr\'iticos \\
+\hline
+RF-133 & Documentar la nueva arquitectura del sistema tras los cambios & AC-15 & Media & Diagramas C4, API docs \\
+\hline
+RF-134 & Desplegar la nueva versi\'on del sistema en entorno de pruebas & AC-15 & Alta & Docker-compose, balanceo carga \\
+\hline
+RF-135 & Actualizar el modelo de base de datos eliminando entidades innecesarias & AC-15 & Alta & 12 tablas depuradas (sin aulas), migraci\'on datos \\
+\hline
+RF-136 & Usar control de versiones para registrar todos los cambios del sprint & AC-15 & Media & Git 92\%, tags sem\'anticos \\
+\hline
+RF-137 & Ajustar los endpoints de la API seg\'un el nuevo modelo de datos & AC-15 & Alta & 30 endpoints, 5 breaking changes \\
+\hline
+RF-138 & Revisar y actualizar wireframes afectados por los cambios del sistema & AC-15 & Media & 18/22 Figma \\
+\hline
+RF-139 & Evaluar el rendimiento del sistema tras los cambios aplicados & AC-15 & Alta & JMeter 50 usuarios, latency +15\% \\
+\hline
+RF-140 & Verificar que las funcionalidades actuales responden a necesidades identificadas en encuestas & AC-16 & Alta & 70\% cubiertos, 30\% backlog \\
+\hline
+RF-141 & Registrar los resultados de validaciones hechas con usuarios (encuestas) & AC-16 & Media & 150 respuestas, dashboard anal\'itico \\
+\hline
+RF-142 & Validar la nueva versi\'on con al menos tres tipos de usuarios & AC-16 & Alta & 9 usuarios (3/rol), diversidad geogr\'afica \\
+\hline
+RF-143 & Registrar mejoras sugeridas por usuarios tras las validaciones & AC-16 & Alta & 47 sugerencias, 15 priorizadas \\
+\hline
+RF-144 & Verificar que la accesibilidad no se haya visto afectada negativamente & AC-16 & Alta & WCAG: 5 errores A \\
+\hline
+RF-145 & Verificar que las funcionalidades actuales responden a necesidades identificadas en encuestas & AC-16 & Alta & 82\% consistencia mercado 2023 \\
+\hline
+RF-146 & Integraci\'on de Chatbot Llama adaptado por rol & Nuevo & Alta & Prompts din\'amicos en ChatService, WebSocket /chat/converse \\
+\hline
+RF-147 & GamifyService real con /api/v1/gamification/award/ & Nuevo & Alta & Sumar puntos, insignias por criterio, ranking agregados \\
+\hline
+RF-148 & Conexi\'on eventos minijuegos Educaplay a activity\_completed & Nuevo & Alta & Se\~nal Django, listener progreso \\
+\hline
+RF-149 & UI React para progreso misiones e insignias & Nuevo & Alta & Panel estudiante/dashboard docente, tarjetas/barras/l\'inea Recharts \\
+\hline
+\hline
+\end{longtable}
+
+\section{M\'odulos de requisitos funcionales (Actualizados)}
+
+\begin{longtable}{|l|p{10cm}|}
+\hline
+M\'ODULO & REQUISITOS \\
+\hline
+General & RF-07, RF-10, RF-11 (microservicios), RF-12, RF-13 (PostgreSQL), RF-14, RF-124 (APIs/microservicios), RF-125, RF-126, RF-127, RF-128, RF-129, RF-130 (eliminadas aulas), RF-132, RF-133, RF-134, RF-135 (sin aulas), RF-136, RF-137, RF-139, RF-140, RF-141, RF-143, RF-145, RF-146 (chatbot), RF-147 (Gamify), RF-148 (eventos), RF-149 (UI gamificaci\'on) \\
+\hline
+M\'odulo 1: Gesti\'on de Seguridad & RF-03, RF-28, RF-51, RF-57, RF-65, RF-71, RF-72, RF-73, RF-74, RF-75, RF-76 \\
+\hline
+M\'odulo 2: Gesti\'on de Usuarios & RF-01 (roles actualizados), RF-08, RF-17 (métricas docentes limitadas), RF-18, RF-22, RF-31, RF-33 (microgrupos), RF-34, RF-35, RF-37, RF-38, RF-40, RF-44, RF-46, RF-48, RF-58 (perfil Experto), RF-59, RF-66, RF-99 (progreso gamificado), RF-100, RF-101, RF-102, RF-103, RF-109, RF-112, RF-117 (avanzadas), RF-142 \\
+\hline
+M\'odulo 3: Gesti\'on de Contenido & RF-02 (APIs), RF-05 (APIs), RF-15, RF-16, RF-20, RF-21, RF-25, RF-26, RF-29, RF-30, RF-32, RF-39, RF-47, RF-49, RF-50 (GBIF), RF-52, RF-53 (Expertos), RF-54, RF-55, RF-56, RF-60, RF-61, RF-62, RF-63, RF-64, RF-68, RF-70, RF-110, RF-111, RF-114, RF-116, RF-118, RF-122 \\
+\hline
+M\'odulo 4: Gesti\'on de Gamificaci\'on & RF-23 (Educaplay), RF-27, RF-36 (LTI/iframe), RF-41, RF-43, RF-45, RF-67, RF-115, RF-119, RF-120, RF-121 (/award/), RF-123, RF-147, RF-148 \\
+\hline
+M\'odulo 5: Gesti\'on de Interfaz y Experiencia de Usuario & RF-06, RF-09, RF-19 (minimalista Vite), RF-24 (React), RF-42, RF-69, RF-77, RF-78, RF-79, RF-80, RF-81, RF-82, RF-83, RF-84, RF-85, RF-86, RF-87, RF-88, RF-89, RF-90, RF-91, RF-92, RF-93, RF-104, RF-105, RF-106, RF-107, RF-108, RF-113, RF-149 (Recharts) \\
+\hline
+\end{longtable}
+
+\chapter{Desarrollo del producto backlog de los requisitos funcionales (Actualizado)}
+
+\section{M\'odulo 1: Gesti\'on de Seguridad}
+
+\subsection{RF-03: Autenticaci\'on y Autorizaci\'on (AC-01)}
+\textbf{Descripci\'on:} Sistema de login con JWT en AuthService (microservicio Django), 1.2s respuesta.
+
+\textbf{Desarrollo:}
+\begin{itemize}
+\item \textbf{Backend:} Django REST Framework + simplejwt, endpoint /api/login/ en AuthService, encriptaci\'on AES-256.
+\item \textbf{Frontend:} Formulario React/Vite con Axios, token en localStorage.
+\item \textbf{Integraci\'on:} Patrones Singleton (conexiones), Strategy (validaci\'on rol). gRPC a otros servicios.
+\item \textbf{Pruebas:} JMeter 50 usuarios.
+\end{itemize}
+
+% Similar updates for other RF in Module 1, removing aula references.
+
+\subsection{RF-28: Protecci\'on de Datos Infantiles (AC-04)}
+\textbf{Descripci\'on:} GDPR/COPPA en AuthService.
+
+\textbf{Desarrollo:}
+\begin{itemize}
+\item \textbf{Backend:} Encriptaci\'on fernet-fields, consentimiento parental en tabla Consentimientos.
+\item \textbf{Frontend:} Modal React para menores $<$13.
+\item \textbf{Integraci\'on:} Con RF-03, Repository pattern para DB.
+\item \textbf{Pruebas:} 10 registros, checklist legal.
+\end{itemize}
+
+% Continue pattern for RF-51, etc., adapting to no aulas.
+
+\section{M\'odulo 2: Gesti\'on de Usuarios}
+
+\subsection{RF-01: Gesti\'on de Roles de Usuario (AC-01)}
+\textbf{Descripci\'on:} Roles Estudiante/Docente/Experto/Admin, permisos en AuthService.
+
+\textbf{Desarrollo:}
+\begin{itemize}
+\item \textbf{Backend:} Modelo Rol en Django, CRUD /api/roles/ restringido Admin.
+\item \textbf{Frontend:} Panel React para Admin.
+\item \textbf{Integraci\'on:} Factory pattern para roles, Observer para cambios.
+\item \textbf{Pruebas:} 5 roles, 20 usuarios.
+\end{itemize}
+
+% Remove RF-04 (aulas), adapt RF-08 to gamified progress, etc.
+
+\section{M\'odulo 3: Gesti\'on de Contenido}
+
+\subsection{RF-02: Fichas educativas multimedia (AC-01)}
+\textbf{Descripci\'on:} Generación automática vía APIs en ContentService.
+
+\textbf{Desarrollo:}
+\begin{itemize}
+\item \textbf{Backend:} Factory pattern selecciona API (GBIF taxonomía, iNaturalist imágenes, EOL descripciones), endpoint /content/generate-ficha.
+\item \textbf{Frontend:} Cards minimalistas React con Framer Motion.
+\item \textbf{Integraci\'on:} Facade para APIs, edición por Expertos.
+\item \textbf{Pruebas:} 20 fichas, 1.8s carga.
+\end{itemize}
+
+% Adapt others: RF-05 to APIs, remove manual creation by docentes.
+
+\section{M\'odulo 4: Gesti\'on de Gamificaci\'on}
+
+\subsection{RF-23: Sistema de Recompensa Virtual (AC-04)}
+\textbf{Descripci\'on:} Educaplay LTI/iframe en GamifyService.
+
+\textbf{Desarrollo:}
+\begin{itemize}
+\item \textbf{Backend:} Modelos Juego/ExternalTool, /api/v1/gamification/award/ POST (user\_id, activity\_id, puntos), persistencia UsuarioPuntaje/InsigniasUsuario.
+\item \textbf{Frontend:} Iframe React, badges list.
+\item \textbf{Integraci\'on:} Señal activity\_completed → listener, Strategy para métricas.
+\item \textbf{Pruebas:} Simular 10 awards, ranking.
+\end{itemize}
+
+% Add RF-147, etc.
+
+\section{M\'odulo 5: Gesti\'on de Interfaz y Experiencia de Usuario}
+
+\subsection{RF-19: Interfaz Amigable para Ni\~nos (AC-04)}
+\textbf{Descripci\'on:} Minimalista con Vite/Tailwind.
+
+\textbf{Desarrollo:}
+\begin{itemize}
+\item \textbf{Frontend:} Hooks React, animaciones Framer Motion, mobile-first.
+\item \textbf{Backend:} N/A.
+\item \textbf{Integraci\'on:} Redux para estado global.
+\item \textbf{Pruebas:} Usabilidad ni\~nos 8-12.
+\end{itemize}
+
+% Adapt to dynamic/minimalist.
+
+\chapter{Marco funcional del sistema (Actualizado)}
+
+\section{FUNCIONES PRINCIPALES DEL SISTEMA}
+
+\begin{itemize}
+\item Autenticaci\'on por roles en microservicios.
+\item Fichas auto-generadas vía APIs, edición Expertos.
+\item Gamificaci\'on Educaplay con insignias/misiones.
+\item Chatbot Llama adaptado.
+\item Dashboards métricas en React.
+\end{itemize}
+
+\section{REQUISITOS FUNCIONALES REPRESENTATIVOS}
+
+\begin{itemize}
+\item RF-01: Roles actualizados.
+\item RF-02: Fichas APIs.
+\item RF-23: Recompensas Educaplay.
+\item RF-36: Actividades LTI.
+\item RF-146: Chatbot.
+\end{itemize}
+
+\section{REQUISITOS NO FUNCIONALES CLAVES}
+
+\begin{itemize}
+\item Rendimiento: API $<$500ms, UI $<$2s (Vite).
+\item Escalabilidad: 1k concurrentes (microservicios).
+\item Seguridad: JWT, GDPR.
+\item Accesibilidad: WCAG AA.
+\item Mantenibilidad: Tests $>$80\%, patrones (Singleton, Factory, Observer).
+\end{itemize}
+
+\section{ACTORES DEL SISTEMA Y SUS FUNCIONES}
+
+\begin{itemize}
+\item \textbf{Estudiante:} Fichas, juegos, progreso, chatbot simple.
+\item \textbf{Docente:} Métricas dashboard, guías.
+\item \textbf{Experto:} Edición fichas, revisión avistamientos.
+\item \textbf{Admin:} Gestión interna.
+\end{itemize}
+
+% Placeholders for updated diagrams
+
+\end{document}

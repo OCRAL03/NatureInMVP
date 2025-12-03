@@ -1,0 +1,16 @@
+{
+  "name": "naturein-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "concurrently \"npm --prefix frontend run dev\" \"python backend/manage.py runserver 0.0.0.0:8000\"",
+    "typecheck": "npm --prefix frontend run build && python backend/manage.py check",
+    "install:frontend": "npm --prefix frontend install",
+    "install:backend": "python -m pip install -r backend/requirements.txt",
+    "migrate": "python backend/manage.py makemigrations; python backend/manage.py migrate",
+    "setup:db": "python backend/scripts/init_db.py"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
