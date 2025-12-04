@@ -1,8 +1,8 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from .models import Sighting
-from .serializers import SightingSerializer
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from .models import Sighting, Institution
+from .serializers import SightingSerializer, InstitutionSerializer
 
 
 @api_view(['GET', 'POST'])
@@ -17,3 +17,10 @@ def sightings(request):
 
     qs = Sighting.objects.order_by('-created_at')
     return Response(SightingSerializer(qs, many=True).data)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def institutions(request):
+    qs = Institution.objects.order_by('name')
+    return Response(InstitutionSerializer(qs, many=True).data)

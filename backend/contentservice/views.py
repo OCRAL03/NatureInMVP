@@ -1,8 +1,51 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+import os
 import requests
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 
+request_schema = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        'query': openapi.Schema(type=openapi.TYPE_STRING),
+        'filters': openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'category': openapi.Schema(type=openapi.TYPE_STRING),
+                'family': openapi.Schema(type=openapi.TYPE_STRING),
+                'location': openapi.Schema(type=openapi.TYPE_STRING),
+                'estado': openapi.Schema(type=openapi.TYPE_STRING),
+                'alimentacion': openapi.Schema(type=openapi.TYPE_STRING),
+                'reproduccion': openapi.Schema(type=openapi.TYPE_STRING),
+            },
+        ),
+    },
+)
+
+response_schema = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        'items': openapi.Schema(
+            type=openapi.TYPE_ARRAY,
+            items=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'id': openapi.Schema(type=openapi.TYPE_STRING),
+                    'scientificName': openapi.Schema(type=openapi.TYPE_STRING),
+                    'imageUrl': openapi.Schema(type=openapi.TYPE_STRING),
+                    'description': openapi.Schema(type=openapi.TYPE_STRING),
+                    'kingdom': openapi.Schema(type=openapi.TYPE_STRING),
+                    'status': openapi.Schema(type=openapi.TYPE_STRING),
+                },
+            ),
+        ),
+    },
+)
+
+@swagger_auto_schema(method='post', request_body=request_schema, responses={200: response_schema})
 @api_view(['POST'])
 def generate_ficha(request):
     query = request.data.get('query') or ''
@@ -92,7 +135,9 @@ def generate_ficha(request):
                     'id': str(t.get('id')),
                     'scientificName': name,
                     'imageUrl': image,
-                    'description': description
+                    'description': description,
+                    'kingdom': cat,
+                    'status': status_code,
                 })
                 if len(items) >= desired:
                     break
@@ -200,7 +245,9 @@ def generate_ficha(request):
                 'id': str(r.get('key')),
                 'scientificName': name,
                 'imageUrl': image,
-                'description': description
+                'description': description,
+                'kingdom': r.get('kingdom'),
+                'status': None,
             })
     except Exception:
         pass
@@ -212,3 +259,46 @@ def generate_ficha(request):
             'description': 'Ejemplo de ficha generada'
         }]
     return Response({'items': items})
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def llm_chat(request):
+    message = (request.data.get('message') or '').strip()
+    history = request.data.get('history') or []
+    if not message:
+        return Response({'error': 'message requerido'}, status=400)
+    system_prompt = 'Eres un asistente virtual llamado Ángela que responde preguntas con respuestas simples y amigables.'
+    msgs = [{'role': 'system', 'content': system_prompt}]
+    for h in history:
+        role = h.get('role')
+        text = h.get('text') or h.get('content') or ''
+        if role in ['user', 'assistant'] and text:
+            msgs.append({'role': role, 'content': text})
+    msgs.append({'role': 'user', 'content': message})
+    try:
+        base = os.environ.get('LLM_BASE_URL', 'http://localhost:11434')
+        model = os.environ.get('LLM_MODEL', 'llama3:latest')
+        r = requests.post(
+            f"{base}/api/chat",
+            json={'model': model, 'messages': msgs, 'stream': False, 'options': {'num_predict': 128}},
+            timeout=120
+        )
+        data = r.json()
+        content = ((data.get('message') or {}).get('content')) or ''
+        return Response({'reply': content})
+    except Exception:
+        return Response({'reply': 'No pude conectarme con la IA. Asegura que Ollama esté ejecutándose y el modelo llama3 instalado.'})
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def llm_health(request):
+    base = os.environ.get('LLM_BASE_URL', 'http://localhost:11434')
+    model = os.environ.get('LLM_MODEL', 'llama3:latest')
+    try:
+        tags = requests.get(f"{base}/api/tags", timeout=5).json()
+        models = [t.get('name') for t in (tags.get('models') or [])]
+        return Response({'available': True, 'models': models, 'modelConfigured': model})
+    except Exception:
+        return Response({'available': False, 'models': [], 'modelConfigured': model})

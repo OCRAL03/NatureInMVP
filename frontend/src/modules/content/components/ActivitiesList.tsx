@@ -9,7 +9,7 @@ export default function ActivitiesList() {
     <section className="mb-8">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-semibold">Actividades asociadas</h3>
-        <button className="text-green-700">Ver más</button>
+        <button className="btn-outline clickable-green">Ver más</button>
       </div>
       <div className="activities-row">
         {items.map((a) => (

@@ -1,6 +1,7 @@
 from django.urls import path
-from .views import sightings
+from .views import sightings, institutions
 
 urlpatterns = [
-    path('sightings', sightings)
+    path('sightings', sightings),
+    path('institutions', institutions)
 ]

@@ -3,16 +3,27 @@
 @tailwind utilities;
 
 :root {
-  --color-fondo: #ffffff;
   --color-verde-principal: #4CAF50;
-  --color-verde-secundario: #81C784;
   --color-azul-principal: #2196F3;
-  --color-texto-oscuro: #2E7D32;
+  --color-fondo: #f8fafc;
+  --color-texto: #1f2937;
+  --color-surface: #ffffff;
+  --color-border: #e5e7eb;
+  --color-muted: #64748B;
 }
 
 body {
   background-color: var(--color-fondo);
-  color: var(--color-texto-oscuro);
+  color: var(--color-texto);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dark {
+  --color-fondo: #0b1220;
+  --color-texto: #f8fafc;
+  --color-surface: #1e293b;
+  --color-border: #334155;
+  --color-muted: #94a3b8;
 }
 
 /* Utilidad de borde degradado verde -> azul */
@@ -29,7 +40,9 @@ body {
 }
 
 .card {
-  @apply bg-white rounded-card shadow-md;
+  @apply rounded-card shadow-md;
+  background-color: var(--color-surface);
+  color: var(--color-texto);
 }
 .card {
   border-width: 1px;
@@ -37,20 +50,33 @@ body {
   border-image: linear-gradient(to right, var(--color-verde-principal), var(--color-azul-principal)) 1;
 }
 
+.dark .btn-primary { color: var(--color-texto); background-color: #223242; }
+.dark .btn-outline { color: var(--color-texto); border-color: var(--color-border); background-color: #223242; }
+.dark .gradient-border { background-color: #0f172a; }
+.dark table { color: var(--color-texto); }
+.dark thead tr { background-color: #0b0f0e; }
+.dark tbody tr { border-color: #1f2937; }
+.dark .pill { color: var(--color-texto); }
+.dark .filters-bar { background-color: var(--color-surface); }
+
 .btn-primary {
   @apply border text-green-700 px-4 py-2 rounded-md hover:bg-green-50 transition;
+  background-color: var(--color-surface);
 }
 .btn-primary { /* borde degradado en botón */
   border-image: linear-gradient(to right, var(--color-verde-principal), var(--color-azul-principal)) 1;
 }
 
 .btn-cta { @apply px-5 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 transition; }
-.btn-outline { @apply px-5 py-2 rounded-md border text-green-700 hover:bg-green-50 transition; }
+.btn-outline { @apply px-5 py-2 rounded-md border hover:bg-green-50 transition; }
+.btn-outline { border-color: var(--color-border); color: var(--color-texto); background-color: var(--color-surface); }
 .btn-pill { @apply px-4 py-2 rounded-full; }
-.glass { @apply bg-white/80 backdrop-blur; }
+.glass { @apply backdrop-blur; background-color: var(--color-surface); }
 
-.input-field { @apply border rounded-md p-2 focus:outline-none; }
-.input-field:focus { box-shadow: 0 0 0 3px rgba(33,150,243,0.25); border-color: #1E88E5; }
+.input-field { @apply border rounded-md p-2 focus:outline-none; border-color: var(--color-border); color: var(--color-texto); background-color: var(--color-surface); }
+.input-field::placeholder { color: var(--color-muted); }
+.input-field:focus { box-shadow: 0 0 0 3px rgba(33,150,243,0.5); border-color: var(--color-azul-principal); }
+.input-with-icon { padding-left: 4.75rem; }
 
 /* Sombreado verde para elementos clickeables */
 .clickable-green { transition: background-color 0.2s ease, box-shadow 0.2s ease; }
@@ -69,7 +95,8 @@ body {
   @apply h-36 md:h-48 w-full object-cover;
 }
 .filters-bar {
-  @apply flex flex-wrap gap-2 items-center p-3 bg-white/80 backdrop-blur rounded-xl -mt-8 mx-4 shadow-md;
+  @apply flex flex-wrap gap-2 items-center p-3 backdrop-blur rounded-xl -mt-8 mx-auto shadow-md max-w-7xl;
+  background-color: var(--color-surface);
 }
 .filters-bar { /* borde degradado */
   border-width: 1px;
@@ -81,8 +108,8 @@ body {
 }
 
 /* Tarjetas de especie */
-.species-grid { @apply grid grid-cols-1 md:grid-cols-3 gap-4; }
-.species-card { @apply p-3 rounded-2xl shadow-md bg-white; }
+.species-grid { @apply grid grid-cols-1 md:grid-cols-4 gap-4; }
+.species-card { @apply p-3 rounded-2xl shadow-md; background-color: var(--color-surface); color: var(--color-texto); }
 .species-card {
   border-width: 1px;
   border-style: solid;
@@ -90,7 +117,7 @@ body {
 }
 .species-card img { @apply w-full h-40 object-cover rounded-xl mb-2; }
 .species-title { @apply text-base font-semibold mb-1; }
-.species-desc { @apply text-sm text-gray-700; }
+.species-desc { @apply text-sm; color: var(--color-muted); }
 
 /* Bloque Aprende */
 .learn-hero { @apply rounded-2xl p-6 bg-green-50 border border-green-100 mb-6; }
@@ -99,7 +126,7 @@ body {
 
 /* Actividades asociadas */
 .activities-row { @apply grid grid-cols-1 md:grid-cols-4 gap-4; }
-.activity-card { @apply p-3 rounded-2xl shadow-md bg-white; }
+.activity-card { @apply p-3 rounded-2xl shadow-md; background-color: var(--color-surface); color: var(--color-texto); }
 .activity-card {
   border-width: 1px;
   border-style: solid;
@@ -107,7 +134,7 @@ body {
 }
 .activity-card img { @apply w-full h-28 object-cover rounded-xl mb-2; }
 .activity-title { @apply font-semibold mb-1; }
-.activity-meta { @apply text-xs text-gray-600; }
+.activity-meta { @apply text-xs; color: var(--color-muted); }
 
 /* Pills ODS */
 .pill { @apply inline-flex items-center px-3 py-1 rounded-full text-sm; }
@@ -120,5 +147,22 @@ body {
 .pill-yellow { border-color: #D6DC9E; }
 
 .landing-hero { @apply rounded-2xl p-8 mb-6 bg-green-50 border border-green-100; }
-.feature-card { @apply p-6 rounded-2xl bg-white shadow-md; }
+.feature-card { @apply p-6 rounded-2xl shadow-md; background-color: var(--color-surface); color: var(--color-texto); }
+
+.text-muted { color: var(--color-muted); }
 .footer-links { @apply flex flex-wrap gap-3 items-center; }
+.bg-surface { background-color: var(--color-surface); }
+.border-base { border-color: var(--color-border); }
+
+/* Ajustes específicos de dark para hero de búsqueda y fondo */
+.dark .search-hero {
+  background: linear-gradient(180deg, rgba(129,199,132,0.06) 0%, rgba(129,199,132,0.03) 100%);
+}
+
+.config-label { display: inline; }
+@media (max-width: 809px) { .config-label { display: none; } }
+.dark .btn-primary:hover { background-color: #243448; }
+.dark .btn-outline:hover { background-color: #243448; }
+.dark body { background-color: rgba(160,255,157,0.12); }
+.dark .btn-cta { background-color: #128a3f; }
+.dark .btn-cta:hover { background-color: #0f7a37; }

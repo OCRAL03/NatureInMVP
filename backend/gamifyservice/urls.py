@@ -1,8 +1,11 @@
 from django.urls import path
-from .views import award, metrics, lti_launch
+from .views import award, metrics, lti_launch, ranking, badges_me, missions_progress
 
 urlpatterns = [
     path('award', award),
     path('metrics', metrics),
     path('lti/launch', lti_launch),
+    path('ranking', ranking),
+    path('badges/me', badges_me),
+    path('missions/progress', missions_progress),
 ]

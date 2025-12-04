@@ -3,4 +3,6 @@ export type SpeciesItem = {
   scientificName: string
   description?: string
   imageUrl?: string
+  kingdom?: string
+  status?: string
 }

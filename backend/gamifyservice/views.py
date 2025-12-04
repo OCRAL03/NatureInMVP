@@ -9,24 +9,74 @@ from django.contrib.auth.decorators import login_required
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
-from .models import Point, Badge, UserBadge
+from django.contrib.auth import get_user_model
+from .models import Point, Badge, UserBadge, UserScore, Rank, BadgeDefinition, Mission, UserProgress, activity_completed
+
+User = get_user_model()
+
+award_request = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        'user_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+        'actividad_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+        'puntos': openapi.Schema(type=openapi.TYPE_INTEGER),
+        'badge_code': openapi.Schema(type=openapi.TYPE_STRING),
+    },
+)
+award_response = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        'awarded_points': openapi.Schema(type=openapi.TYPE_INTEGER),
+        'new_total': openapi.Schema(type=openapi.TYPE_INTEGER),
+        'rank': openapi.Schema(type=openapi.TYPE_STRING),
+        'awarded_badge': openapi.Schema(type=openapi.TYPE_STRING),
+    },
+)
 
 
+@swagger_auto_schema(method='post', request_body=award_request, responses={200: award_response})
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def award(request):
-    user = request.user
-    points = int(request.data.get('points', 0))
-    badge_name = request.data.get('badge_name')
-    if points:
-        Point.objects.create(user=user, value=points)
+    uid = request.data.get('user_id')
+    user = request.user if not uid else User.objects.filter(id=uid).first() or request.user
+    puntos = int(request.data.get('puntos', 0))
+    actividad_id = request.data.get('actividad_id')
+    badge_code = request.data.get('badge_code')
+    new_total = None
+    current_rank = None
     awarded_badge = None
-    if badge_name:
-        badge, _ = Badge.objects.get_or_create(name=badge_name)
+
+    if puntos:
+        Point.objects.create(user=user, value=puntos)
+        score, _ = UserScore.objects.get_or_create(user=user)
+        score.points = int(score.points or 0) + puntos
+        candidate = Rank.objects.filter(min_points__lte=score.points).order_by('-min_points').first()
+        if candidate:
+            score.rank = candidate
+            current_rank = candidate.name
+        score.save()
+        new_total = score.points
+        activity_completed.send(sender=None, user_id=user.id, actividad_id=actividad_id, puntos=puntos)
+
+    if badge_code:
+        defn = BadgeDefinition.objects.filter(code=badge_code).first()
+        name = defn.name if defn else badge_code
+        badge, _ = Badge.objects.get_or_create(name=name, defaults={'description': defn.description if defn else ''})
         UserBadge.objects.get_or_create(user=user, badge=badge)
         awarded_badge = badge.name
-    return Response({'awarded_points': points, 'awarded_badge': awarded_badge})
+    else:
+        score = UserScore.objects.filter(user=user).first()
+        if score:
+            for defn in BadgeDefinition.objects.all():
+                if score.points >= defn.threshold_points:
+                    badge, _ = Badge.objects.get_or_create(name=defn.name, defaults={'description': defn.description})
+                    UserBadge.objects.get_or_create(user=user, badge=badge)
+
+    return Response({'awarded_points': puntos, 'new_total': new_total, 'rank': current_rank, 'awarded_badge': awarded_badge})
 
 
 @api_view(['GET'])
@@ -36,6 +86,55 @@ def metrics(request):
     total_points = sum(p.value for p in Point.objects.filter(user=user))
     badges = list(UserBadge.objects.filter(user=user).values_list('badge__name', flat=True))
     return Response({'total_points': total_points, 'badges': badges})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def ranking(request):
+    qs = UserScore.objects.select_related('rank').order_by('-points')[:50]
+    data = [{'user_id': s.user_id, 'puntos': s.points, 'rango': (s.rank.name if s.rank else None)} for s in qs]
+    return Response(data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def badges_me(request):
+    names = list(UserBadge.objects.filter(user=request.user).values_list('badge__name', flat=True))
+    return Response({'badges': names})
+
+
+missions_request = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        'mission_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+        'progress': openapi.Schema(type=openapi.TYPE_INTEGER),
+        'completed': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+    },
+)
+
+@swagger_auto_schema(method='post', request_body=missions_request)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def missions_progress(request):
+    mission_id = request.data.get('mission_id')
+    progress = int(request.data.get('progress', 0))
+    completed = bool(request.data.get('completed', False))
+    mission = Mission.objects.filter(id=mission_id).first()
+    if not mission:
+        return Response({'detail': 'mission not found'}, status=404)
+    up, _ = UserProgress.objects.get_or_create(user=request.user, mission=mission)
+    up.progress = progress
+    up.completed = completed
+    up.save()
+    if completed and mission.reward_points:
+        Point.objects.create(user=request.user, value=mission.reward_points)
+        score, _ = UserScore.objects.get_or_create(user=request.user)
+        score.points = int(score.points or 0) + mission.reward_points
+        candidate = Rank.objects.filter(min_points__lte=score.points).order_by('-min_points').first()
+        if candidate:
+            score.rank = candidate
+        score.save()
+    return Response({'mission_id': mission_id, 'progress': progress, 'completed': completed})
 
 
 def _oauth_signature(method, url, params, consumer_secret):
