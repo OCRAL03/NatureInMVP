@@ -112,7 +112,14 @@ def user_stats(request):
     # Obtener actividades recientes
     recent_activities = UserActivity.objects.filter(user=user)[:10]
 
+    # Obtener rol del usuario
+    try:
+        role = user.role.role
+    except Exception:
+        role = 'student'
+
     stats_data = {
+        'role': role,
         'total_sightings': sighting_stats.get('total_sightings', 0),
         'verified_sightings': sighting_stats.get('verified_sightings', 0),
         'pending_sightings': sighting_stats.get('pending_sightings', 0),

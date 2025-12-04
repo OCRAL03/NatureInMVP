@@ -7,4 +7,5 @@ urlpatterns = [
     path('api/content/', include('contentservice.urls')),
     path('api/user/', include('userservice.urls')),
     path('api/gamify/', include('gamifyservice.urls')),
+    path('api/ia/', include('iaservice.urls')),
 ]
