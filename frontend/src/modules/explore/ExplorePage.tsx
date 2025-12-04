@@ -7,20 +7,41 @@ import imgPavas from '../../assets/images/explorar/cueva_de_las_pavas.jpeg'
 import imgJardin from '../../assets/images/explorar/jardin_botanico.jpeg'
 import imgMariposario from '../../assets/images/explorar/mariposario.jpeg'
 import { useTranslation } from 'react-i18next'
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import api from '../../api/client'
 
-type Place = { title: string; coords: [number, number]; img: string }
+type Place = { id: number; title: string; coords: [number, number]; img: string }
 type SpeciesInfo = { name: string; image?: string }
 
-const places: Place[] = [
-  { title: 'Cuevas de las Lechuzas', coords: [-9.295, -75.998], img: imgLechuzas },
-  { title: 'Cuevas de las Pavas', coords: [-9.300, -75.990], img: imgPavas },
-  { title: 'Jardín Botánico', coords: [-9.284, -75.986], img: imgJardin },
-  { title: 'Mariposario', coords: [-9.310, -76.005], img: imgMariposario },
-]
+function usePlaces(): Place[] {
+  const [items, setItems] = useState<Place[]>([])
+  const imageMap = useMemo(() => ({
+    'cueva_de_las_lechuzas.jpeg': imgLechuzas,
+    'cueva_de_las_pavas.jpeg': imgPavas,
+    'jardin_botanico.jpeg': imgJardin,
+    'mariposario.jpeg': imgMariposario,
+  }), [])
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const { data } = await api.get('/user/places')
+        const mapped: Place[] = (data || []).map((p: any) => ({
+          id: p.id,
+          title: p.title,
+          coords: [p.lat, p.lng],
+          img: imageMap[p.image_url] || imgLechuzas,
+        }))
+        setItems(mapped)
+      } catch {}
+    }
+    load()
+  }, [imageMap])
+  return items
+}
 
 export default function ExplorePage() {
   const { t } = useTranslation()
+  const places = usePlaces()
   const [details, setDetails] = useState<Record<string, SpeciesInfo[]>>({})
 
   const loadSpecies = async (p: Place) => {
