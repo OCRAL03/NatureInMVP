@@ -31,13 +31,24 @@ Demo funcional del sitio con datos locales y configuración para PostgreSQL.
   - `/demo/lugares` lugares turísticos de Tingo María
   - `/demo/minijuegos` catálogo de minijuegos (stub)
 
+## Modo oscuro
+
+- El tema oscuro se aplica automáticamente si tu sistema lo prefiere.
+- Puedes alternar entre claro/oscuro desde el botón "Configuración" en la barra superior.
+- En modo oscuro, el fondo y los componentes usan una paleta adecuada para asegurar buen contraste, incluyendo estados hover.
+
 ## Verificación
 
 - `npm run typecheck` compila el frontend y ejecuta `manage.py check` en backend.
 - `npm --prefix frontend run build` para generar artefactos de producción.
 
+## Instalación rápida
+
+- Frontend: `npm run install:frontend`
+- Backend: `npm run install:backend`
+- Base de datos y migraciones: `npm run setup:db`
+
 ## Notas
 
 - El backend puede fallar al iniciar si `DB_PASSWORD` no está definido o no corresponde a su instalación de PostgreSQL.
 - Las imágenes del demo se cargan desde `frontend/src/assets/images`. No se consume ninguna API externa en estas vistas.
-
