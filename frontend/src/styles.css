@@ -163,8 +163,6 @@ body {
 @media (max-width: 809px) { .config-label { display: none; } }
 .dark .btn-primary:hover { background-color: #243448; }
 .dark .btn-outline:hover { background-color: #243448; }
-.dark body { background-color: var(--color-fondo); }
+.dark body { background-color: rgba(160,255,157,0.12); }
 .dark .btn-cta { background-color: #128a3f; }
 .dark .btn-cta:hover { background-color: #0f7a37; }
-/* Mejora de contraste al hacer hover en enlaces con texto muted en modo oscuro */
-.dark .text-muted:hover { color: #86efac; }

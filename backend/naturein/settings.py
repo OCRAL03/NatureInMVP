@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'contentservice',
     'userservice',
     'gamifyservice',
+    'iaservice',
 ]
 
 MIDDLEWARE = [

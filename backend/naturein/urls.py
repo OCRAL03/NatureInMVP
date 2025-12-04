@@ -11,6 +11,7 @@ urlpatterns = [
     path('api/user/', include('userservice.urls')),
     path('api/gamify/', include('gamifyservice.urls')),
     path('api/v1/gamification/', include('gamifyservice.urls')),
+    path('api/ia/', include('iaservice.urls')),
 ]
 
 schema_view = get_schema_view(
