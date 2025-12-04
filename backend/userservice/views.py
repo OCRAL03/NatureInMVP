@@ -1,8 +1,8 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import Sighting, Institution
-from .serializers import SightingSerializer, InstitutionSerializer
+from .models import Sighting, Institution, Place
+from .serializers import SightingSerializer, InstitutionSerializer, PlaceSerializer
 
 
 @api_view(['GET', 'POST'])
@@ -24,3 +24,10 @@ def sightings(request):
 def institutions(request):
     qs = Institution.objects.order_by('name')
     return Response(InstitutionSerializer(qs, many=True).data)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def places(request):
+    qs = Place.objects.order_by('title')
+    return Response(PlaceSerializer(qs, many=True).data)

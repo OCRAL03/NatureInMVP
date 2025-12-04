@@ -18,3 +18,13 @@ class Sighting(models.Model):
 
     def __str__(self):
         return f"{self.species} @ {self.location}"
+
+
+class Place(models.Model):
+    title = models.CharField(max_length=200, unique=True)
+    lat = models.FloatField()
+    lng = models.FloatField()
+    image_url = models.CharField(max_length=300, blank=True)
+
+    def __str__(self):
+        return self.title

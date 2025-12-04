@@ -73,7 +73,7 @@ def main():
         import django
         django.setup()
         from gamifyservice.models import Rank, BadgeDefinition, Mission
-        from userservice.models import Institution
+        from userservice.models import Institution, Place
 
         # Seed ranks
         ranks = [
@@ -162,6 +162,24 @@ def main():
             print('DOCS_NOT_FOUND')
     except Exception as e:
         print(f'ERROR_INSTITUTIONS: {e}')
+
+    # Seed tourist places (lugares turísticos)
+    try:
+        places = [
+            {'title': 'Cuevas de las Lechuzas', 'lat': -9.32898, 'lng': -76.02689, 'image_url': 'cueva_de_las_lechuzas.jpeg'},
+            {'title': 'Cuevas de las Pavas', 'lat': -9.37442, 'lng': -75.96127, 'image_url': 'cueva_de_las_pavas.jpeg'},
+            {'title': 'Jardín Botánico', 'lat': -9.30416, 'lng': -76.00407, 'image_url': 'jardin_botanico.jpeg'},
+            {'title': 'Mariposario', 'lat': -9.28531, 'lng': -75.99271, 'image_url': 'mariposario.jpeg'},
+            {'title': 'Serpentario', 'lat': -9.28442, 'lng': -76.00690, 'image_url': ''},
+            {'title': 'Mirador', 'lat': -9.28965, 'lng': -75.99734, 'image_url': ''},
+            {'title': 'Laguna de los Milagros', 'lat': -9.144916, 'lng': -75.995331, 'image_url': ''},
+            {'title': 'Coto Mono', 'lat': -9.31667, 'lng': -76.03333, 'image_url': ''},
+        ]
+        for p in places:
+            Place.objects.get_or_create(title=p['title'], defaults={'lat': p['lat'], 'lng': p['lng'], 'image_url': p['image_url']})
+        print('PLACES_SEEDED')
+    except Exception as e:
+        print(f'ERROR_PLACES: {e}')
 
 
 if __name__ == '__main__':
