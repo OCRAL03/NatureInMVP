@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import api from '../../api/client'
 import Card from '../../components/ui/Card'
+import RoleSidebar from '../../components/layout/RoleSidebar'
 import Button from '../../components/ui/Button'
 import { Award, Target, Trophy } from 'lucide-react'
 import { useDispatch } from 'react-redux'
@@ -37,7 +38,9 @@ export default function StudentDashboard() {
   }
 
   return (
-    <div className="grid md:grid-cols-3 gap-4">
+    <div className="flex gap-4">
+      <RoleSidebar role="student" />
+      <div className="grid md:grid-cols-3 gap-4 flex-1">
       <Card className="p-4 md:col-span-3">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-lg">{me?.profile?.full_name || me?.username || 'Usuario'}</span>
@@ -76,6 +79,7 @@ export default function StudentDashboard() {
           })}
         </div>
       </Card>
+      </div>
     </div>
   )
 }

@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next'
 import api from '../../api/client'
 import { motion } from 'framer-motion'
 const logoImg = new URL('../../assets/images/naturein_logo.png', import.meta.url).href
+const faviconImg = new URL('../../assets/icons/favicon.ico', import.meta.url).href
 
 export default function Navbar() {
   const navigate = useNavigate()
@@ -44,12 +45,19 @@ export default function Navbar() {
     const isDark = document.documentElement.classList.toggle('dark')
     localStorage.setItem('theme', isDark ? 'dark' : 'light')
   }
-  const toggleLang = () => { i18n.changeLanguage(i18n.language === 'es' ? 'qu' : i18n.language === 'qu' ? 'en' : 'es'); setShowConfig(false) }
+  const toggleLang = () => {
+    const next = i18n.language === 'es' ? 'qu' : i18n.language === 'qu' ? 'en' : 'es'
+    i18n.changeLanguage(next)
+    try { localStorage.setItem('lang', next) } catch {}
+    if (typeof document !== 'undefined') document.documentElement.lang = next
+    setShowConfig(false)
+  }
   return (
     <nav className="flex items-center p-3 gradient-border bg-surface">
       <div className="flex items-center gap-2">
         <Link to="/">
-          <img src={logoImg} alt="NatureIn" className="h-7" />
+          <img src={logoImg} alt="NatureIn" className="h-7 hidden md:block" />
+          <img src={faviconImg} alt="NatureIn" className="h-7 md:hidden" />
         </Link>
       </div>
       <div className="flex-1 flex justify-center gap-4">
@@ -69,7 +77,7 @@ export default function Navbar() {
           <Eye className="w-5 h-5 md:hidden" />
           <span className="hidden md:inline">{t('nav.sightings')}</span>
         </Link>
-        <Link to="/demo" className="text-muted hidden md:inline" title="Demo">Demo</Link>
+        
       </div>
       <div className="flex items-center gap-3 relative">
         <button ref={configBtnRef} aria-label="Configuración" onClick={() => setShowConfig((v) => !v)} className="btn-outline flex items-center gap-1"><Settings className="w-4 h-4" /><span className="config-label">Configuración</span></button>
@@ -83,9 +91,9 @@ export default function Navbar() {
               <div>
                 <div className="text-xs text-muted mb-1">Idioma</div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <button onClick={() => { i18n.changeLanguage('es'); setShowConfig(false) }} className="btn-outline text-xs">ES</button>
-                  <button onClick={() => { i18n.changeLanguage('en'); setShowConfig(false) }} className="btn-outline text-xs">EN</button>
-                  <button onClick={() => { i18n.changeLanguage('qu'); setShowConfig(false) }} className="btn-outline text-xs">QU</button>
+                  <button onClick={() => { i18n.changeLanguage('es'); try { localStorage.setItem('lang', 'es') } catch {}; if (typeof document !== 'undefined') document.documentElement.lang = 'es'; setShowConfig(false) }} className="btn-outline text-xs">ES</button>
+                  <button onClick={() => { i18n.changeLanguage('en'); try { localStorage.setItem('lang', 'en') } catch {}; if (typeof document !== 'undefined') document.documentElement.lang = 'en'; setShowConfig(false) }} className="btn-outline text-xs">EN</button>
+                  <button onClick={() => { i18n.changeLanguage('qu'); try { localStorage.setItem('lang', 'qu') } catch {}; if (typeof document !== 'undefined') document.documentElement.lang = 'qu'; setShowConfig(false) }} className="btn-outline text-xs">QU</button>
                 </div>
               </div>
               <div>
@@ -103,9 +111,9 @@ export default function Navbar() {
         )}
         {!token ? (
           <>
-            <Link to="/login?tab=register" className="btn-primary hidden md:inline">Regístrate</Link>
+            <Link to="/login?tab=register" className="btn-cta btn-cta-registrate hidden md:inline">Regístrate</Link>
             <Link to="/login?tab=login" className="btn-primary hidden md:inline">Inicia sesión</Link>
-            <Link to="/login?tab=register" className="btn-primary md:hidden">Únete</Link>
+            <Link to="/login?tab=register" className="btn-cta btn-cta-registrate md:hidden">Únete</Link>
           </>
         ) : (
           <button className="btn-primary" onClick={onLogout}>{role ? `Logout (${role})` : 'Logout'}</button>

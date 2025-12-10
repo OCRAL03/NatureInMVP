@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 
 class Institution(models.Model):
@@ -28,3 +29,17 @@ class Place(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Message(models.Model):
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sent_messages', null=True, blank=True, db_column='sender_id')
+    recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='received_messages', null=True, blank=True, db_column='recipient_id')
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    read = models.BooleanField(default=False)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['sender', 'recipient']),
+            models.Index(fields=['recipient', 'read']),
+        ]

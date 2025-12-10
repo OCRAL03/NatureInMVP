@@ -8,7 +8,7 @@ const gradeOptions = ['1°','2°','3°','4°','5°']
 const sectionOptions = ['A','B','C','D']
 
 export default function LoginForm() {
-  const [tab, setTab] = useState<'login' | 'register'>('login')
+  const [tab, setTab] = useState<'login' | 'register'>('register')
   const [role, setRole] = useState<'estudiante' | 'docente' | 'experto'>('estudiante')
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
@@ -93,18 +93,18 @@ export default function LoginForm() {
           </div>
           <div className="flex justify-center gap-3 mb-6">
             <button
-              className={`${tab === 'login' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-300/60' : 'bg-white text-emerald-700 border border-emerald-600 hover:bg-emerald-50'} px-6 py-2 rounded-none transition`}
-              onClick={() => setTab('login')}
-              type="button"
-            >
-              Ingresar
-            </button>
-            <button
               className={`${tab === 'register' ? 'bg-emerald-600 text-white shadow-lg shadow-cyan-300/60' : 'bg-white text-emerald-700 border border-emerald-600 hover:bg-emerald-50'} px-6 py-2 rounded-none transition`}
               onClick={() => setTab('register')}
               type="button"
             >
               Registrarse
+            </button>
+            <button
+              className={`${tab === 'login' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-300/60' : 'bg-white text-emerald-700 border border-emerald-600 hover:bg-emerald-50'} px-6 py-2 rounded-none transition`}
+              onClick={() => setTab('login')}
+              type="button"
+            >
+              Ingresar
             </button>
           </div>
 

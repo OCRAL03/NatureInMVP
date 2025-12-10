@@ -28,11 +28,24 @@ const resources = {
   }
 }
 
+const supported = ['es', 'en', 'qu']
+let initial = 'es'
+try {
+  const saved = typeof window !== 'undefined' ? (localStorage.getItem('lang') || '') : ''
+  const browser = typeof navigator !== 'undefined' ? (navigator.language || 'es').slice(0, 2) : 'es'
+  const pick = (saved && supported.includes(saved)) ? saved : (supported.includes(browser) ? browser : 'es')
+  initial = pick
+} catch {}
+
 i18n.use(initReactI18next).init({
   resources,
-  lng: 'es',
+  lng: initial,
   fallbackLng: 'es',
   interpolation: { escapeValue: false }
 })
+
+if (typeof document !== 'undefined') {
+  document.documentElement.lang = initial
+}
 
 export default i18n

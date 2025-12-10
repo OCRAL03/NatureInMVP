@@ -43,6 +43,8 @@ export default function ExplorePage() {
   const { t } = useTranslation()
   const places = usePlaces()
   const [details, setDetails] = useState<Record<string, SpeciesInfo[]>>({})
+  const [institutions, setInstitutions] = useState<any[]>([])
+  const [placesDocs, setPlacesDocs] = useState<any[]>([])
 
   const loadSpecies = async (p: Place) => {
     if (details[p.title]) return
@@ -58,6 +60,19 @@ export default function ExplorePage() {
       setDetails((prev) => ({ ...prev, [p.title]: [...gbifNames, ...inatInfos] }))
     } catch {}
   }
+  useEffect(() => {
+    const loadDocs = async () => {
+      try {
+        const inst = await api.get('/user/docs/institutions')
+        setInstitutions(inst.data || [])
+      } catch {}
+      try {
+        const plc = await api.get('/user/docs/places')
+        setPlacesDocs(plc.data || [])
+      } catch {}
+    }
+    loadDocs()
+  }, [])
   return (
     <div>
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="card p-6 mb-6">
@@ -106,6 +121,26 @@ export default function ExplorePage() {
           <Card key={i} className="p-3">
             <div className="font-semibold mb-1">Actividad {i}</div>
             <div className="text-sm text-muted">Contenido de ejemplo</div>
+          </Card>
+        ))}
+      </div>
+      <h2 className="text-xl mt-6 mb-3">Instituciones educativas</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {institutions.slice(0, 9).map((ins: any, idx: number) => (
+          <Card key={idx} className="p-3">
+            <div className="font-semibold">{ins.name}</div>
+            <div className="text-sm text-muted">{ins.address || ''}</div>
+            {ins.phone && <div className="text-xs text-muted">Tel: {ins.phone}</div>}
+          </Card>
+        ))}
+      </div>
+      <h2 className="text-xl mt-6 mb-3">Lugares turísticos</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {placesDocs.slice(0, 9).map((pl: any, idx: number) => (
+          <Card key={idx} className="p-3">
+            <div className="font-semibold">{pl.title}</div>
+            <div className="text-sm text-muted">{pl.description || ''}</div>
+            {pl.location && <div className="text-xs text-muted">{pl.location}</div>}
           </Card>
         ))}
       </div>

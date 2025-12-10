@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import api from '../../api/client'
 import Card from '../../components/ui/Card'
+import RoleSidebar from '../../components/layout/RoleSidebar'
 import { BarChart3, ListOrdered } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 import { setRole, setUser } from '../auth/authSlice'
+import Button from '../../components/ui/Button'
 
 type RankItem = { user_id: number; puntos: number; rango?: string | null }
 
@@ -32,7 +34,9 @@ export default function TeacherDashboard() {
   useEffect(() => { loadRanking() }, [])
 
   return (
-    <div className="grid md:grid-cols-3 gap-4">
+    <div className="flex gap-4">
+      <RoleSidebar role="teacher" />
+      <div className="grid md:grid-cols-3 gap-4 flex-1">
       <Card className="p-4 md:col-span-3">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-lg">{me?.profile?.full_name || me?.username || 'Usuario'}</span>
@@ -70,7 +74,26 @@ export default function TeacherDashboard() {
       <Card className="p-4">
         <div className="flex items-center gap-2 mb-2"><BarChart3 className="w-5 h-5" /> <span className="font-semibold">Métricas</span></div>
         <div className="text-sm text-muted">Próximas: tasa de finalización, participación y eventos top.</div>
+        <div className="mt-4">
+          <Button onClick={async () => {
+            try {
+              const selected = JSON.parse(localStorage.getItem('teacher_guide_species') || '[]') || []
+              const res = await api.post('/content/teaching/guides', { species: selected }, { responseType: 'blob' })
+              const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
+              const a = document.createElement('a')
+              a.href = url
+              a.download = 'guia_pedagogica.pdf'
+              document.body.appendChild(a)
+              a.click()
+              a.remove()
+              window.URL.revokeObjectURL(url)
+            } catch (e) {
+              alert('No fue posible generar la guía')
+            }
+          }}>Descargar guía pedagógica</Button>
+        </div>
       </Card>
+    </div>
     </div>
   )
 }
