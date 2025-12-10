@@ -17,6 +17,22 @@ from .models import Point, Badge, UserBadge, UserScore, Rank, BadgeDefinition, M
 
 User = get_user_model()
 
+def _update_user_score(user, points_to_add):
+    """
+    Helper para actualizar el puntaje y rango de un usuario de forma centralizada.
+    """
+    if not points_to_add:
+        return None, None
+
+    Point.objects.create(user=user, value=points_to_add)
+    score, _ = UserScore.objects.get_or_create(user=user)
+    score.points = int(score.points or 0) + points_to_add
+    candidate_rank = Rank.objects.filter(min_points__lte=score.points).order_by('-min_points').first()
+    if candidate_rank:
+        score.rank = candidate_rank
+    score.save()
+    return score.points, getattr(score.rank, 'name', None)
+
 award_request = openapi.Schema(
     type=openapi.TYPE_OBJECT,
     properties={
@@ -50,17 +66,7 @@ def award(request):
     current_rank = None
     awarded_badge = None
 
-    if puntos:
-        Point.objects.create(user=user, value=puntos)
-        score, _ = UserScore.objects.get_or_create(user=user)
-        score.points = int(score.points or 0) + puntos
-        candidate = Rank.objects.filter(min_points__lte=score.points).order_by('-min_points').first()
-        if candidate:
-            score.rank = candidate
-            current_rank = candidate.name
-        score.save()
-        new_total = score.points
-        activity_completed.send(sender=None, user_id=user.id, actividad_id=actividad_id, puntos=puntos)
+    new_total, current_rank = _update_user_score(user, puntos)
 
     if badge_code:
         defn = BadgeDefinition.objects.filter(code=badge_code).first()
@@ -127,13 +133,7 @@ def missions_progress(request):
     up.completed = completed
     up.save()
     if completed and mission.reward_points:
-        Point.objects.create(user=request.user, value=mission.reward_points)
-        score, _ = UserScore.objects.get_or_create(user=request.user)
-        score.points = int(score.points or 0) + mission.reward_points
-        candidate = Rank.objects.filter(min_points__lte=score.points).order_by('-min_points').first()
-        if candidate:
-            score.rank = candidate
-        score.save()
+        _update_user_score(request.user, mission.reward_points)
     return Response({'mission_id': mission_id, 'progress': progress, 'completed': completed})
 
 

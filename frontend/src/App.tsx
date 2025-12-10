@@ -4,8 +4,9 @@ import ProtectedRoute from './modules/auth/ProtectedRoute'
 import SearchPage from './modules/content/SearchPage'
 import CreateFichaPage from './modules/content/CreateFichaPage'
 import GamifyPage from './modules/gamify/GamifyPage'
-import StudentDashboard from './modules/user/StudentDashboard'
+import StudentDashboard from './modules/user_dashboard/StudentDashboard'
 import TeacherDashboard from './modules/user/TeacherDashboard'
+import ExpertDashboard from './modules/expert_dashboard/ExpertDashboard'
 import ChatPage from './modules/chat/ChatPage'
 import SightingsPage from './modules/user/SightingsPage'
 import ExplorePage from './modules/explore/ExplorePage'
@@ -28,8 +29,16 @@ export default function App() {
         <Route path="/content" element={<SearchPage />} />
         <Route path="/content/ficha" element={<ProtectedRoute><CreateFichaPage /></ProtectedRoute>} />
         <Route path="/gamify" element={<GamifyPage />} />
+        
+        {/* Dashboards por rol */}
+        <Route path="/dashboard/student" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
+        <Route path="/dashboard/teacher" element={<ProtectedRoute><TeacherDashboard /></ProtectedRoute>} />
+        <Route path="/dashboard/expert" element={<ProtectedRoute><ExpertDashboard /></ProtectedRoute>} />
+        
+        {/* Rutas antiguas mantenidas por compatibilidad */}
         <Route path="/gamify/student" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
         <Route path="/gamify/teacher" element={<ProtectedRoute><TeacherDashboard /></ProtectedRoute>} />
+        
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/explore" element={<ExplorePage />} />
         <Route path="/sightings" element={<ProtectedRoute><SightingsPage /></ProtectedRoute>} />

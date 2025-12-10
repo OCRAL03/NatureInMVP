@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'contentservice',
     'userservice',
     'gamifyservice',
+    'expertservice',
 ]
 
 MIDDLEWARE = [
@@ -61,8 +62,8 @@ WSGI_APPLICATION = 'naturein.wsgi.application'
 if os.environ.get('DB_ENGINE', '').lower() == 'sqlite':
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': BASE_DIR / 'db.postgresql',
         }
     }
 else:
@@ -94,5 +95,23 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
-    ]
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+}
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': 'Token JWT en formato: Bearer <token>'
+        }
+    },
+    'USE_SESSION_AUTH': False,
+    'JSON_EDITOR': True,
+    'SUPPORTED_SUBMIT_METHODS': ['get', 'post', 'put', 'patch', 'delete'],
+    'OPERATIONS_SORTER': 'alpha',
+    'TAGS_SORTER': 'alpha',
+    'DOC_EXPANSION': 'list',
 }

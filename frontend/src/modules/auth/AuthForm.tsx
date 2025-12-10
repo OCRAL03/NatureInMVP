@@ -14,7 +14,7 @@ export default function LoginForm() {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
-    fullName: '',
+    full_name: '',
     email: '',
     institution: '',
     studyArea: '',
@@ -23,6 +23,7 @@ export default function LoginForm() {
     subject: ''
   })
   const [institutions, setInstitutions] = useState<string[]>([])
+  const [errors, setErrors] = useState<Record<string, any>>({})
 
   useEffect(() => {
     const load = async () => {
@@ -54,6 +55,7 @@ export default function LoginForm() {
   const subcopy = tab === 'login' ? 'Ingresa para continuar tu exploración y misiones' : 'Crea tu cuenta según tu rol para personalizar tu experiencia'
 
   async function submitAuth() {
+    setErrors({}) // Limpia errores previos
     const apiMod = (await import('../../api/client')).default
     try {
       if (tab === 'login') {
@@ -62,20 +64,61 @@ export default function LoginForm() {
         const refresh = data?.refresh
         if (access) localStorage.setItem('token', access)
         if (refresh) localStorage.setItem('refresh', refresh)
-        navigate('/content')
+        
+        // Obtener rol del usuario para redirigir al dashboard correcto
+        try {
+          const { data: userData } = await apiMod.get('/user/me/')
+          const userRole = userData?.role || 'student'
+          
+          // Redirigir según rol
+          const roleDashboardMap: Record<string, string> = {
+            student: '/dashboard/student',
+            teacher: '/dashboard/teacher',
+            expert: '/dashboard/expert'
+          }
+          navigate(roleDashboardMap[userRole] || '/dashboard/student')
+        } catch {
+          // Si falla obtener el rol, redirigir a content por defecto
+          navigate('/content')
+        }
       } else {
         const roleMap: Record<string, string> = { estudiante: 'student', docente: 'teacher', experto: 'expert' }
         const roleCode = roleMap[role]
-        const payload: any = { username: formData.username, password: formData.password, role: roleCode, fullName: formData.fullName, email: formData.email, institution: formData.institution, grade: formData.grade, section: formData.section, subject: formData.subject, studyArea: formData.studyArea }
-        const { data } = await apiMod.post('/auth/register/', payload)
+        const payload: any = {
+          username: formData.username,
+          password: formData.password,
+          password_confirm: formData.password,
+          role: roleCode,
+          full_name: formData.full_name,
+          email: formData.email,
+          institution: formData.institution,
+          grade: formData.grade,
+          section: formData.section,
+          subject: formData.subject,
+          study_area: formData.studyArea
+        }
+        const { data } = await apiMod.post('/user/register/', payload)
         const access = data?.access
         const refresh = data?.refresh
         if (access) localStorage.setItem('token', access)
         if (refresh) localStorage.setItem('refresh', refresh)
-        navigate('/content')
+        
+        // Después de registro, redirigir según rol
+        const roleDashboardMap: Record<string, string> = {
+          student: '/dashboard/student',
+          teacher: '/dashboard/teacher',
+          expert: '/dashboard/expert'
+        }
+        navigate(roleDashboardMap[roleCode] || '/dashboard/student')
       }
-    } catch (err) {
-      alert('Error de autenticación')
+    } catch (err: any) {
+      if (err.response && err.response.data) {
+        // Si el backend envía errores de validación, los guardamos
+        setErrors(err.response.data)
+      } else {
+        // Si es otro tipo de error, mostramos un mensaje general
+        setErrors({ general: 'Ocurrió un error inesperado. Por favor, intenta de nuevo.' })
+      }
     }
   }
 
@@ -135,10 +178,11 @@ export default function LoginForm() {
                   type="text"
                   className="input-field gradient-border focus-blue input-with-icon w-full min-h-[44px]"
                   placeholder="Juan Pérez García"
-                  value={formData.fullName}
-                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                 />
               </div>
+              {errors.full_name && <div className="text-xs text-red-500 mt-1">{errors.full_name}</div>}
               <div className="text-xs text-muted">Nombres y apellidos completos</div>
             </div>
           )}
@@ -155,6 +199,7 @@ export default function LoginForm() {
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               />
             </div>
+            {errors.username && <div className="text-xs text-red-500 mt-1">{errors.username}</div>}
             {tab === 'register' && (
               <div className="text-xs text-muted">Será tu identificador para iniciar sesión</div>
             )}
@@ -179,6 +224,8 @@ export default function LoginForm() {
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
+            {errors.password && <div className="text-xs text-red-500 mt-1">{errors.password}</div>}
+            {errors.password_confirm && <div className="text-xs text-red-500 mt-1">{errors.password_confirm}</div>}
             <div className="text-xs text-muted">
               {tab === 'register' ? 'Mínimo 8 caracteres, combina letras y números' : 'Tu contraseña segura'}
             </div>
@@ -215,6 +262,9 @@ export default function LoginForm() {
                   </select>
                 </div>
               </div>
+              {errors.grade && <div className="text-xs text-red-500 mt-1">{errors.grade}</div>}
+              {errors.section && <div className="text-xs text-red-500 mt-1">{errors.section}</div>}
+              {errors.role && <div className="text-xs text-red-500 mt-1">{errors.role}</div>}
             </div>
           )}
 
@@ -231,6 +281,7 @@ export default function LoginForm() {
                   onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                 />
               </div>
+              {errors.subject && <div className="text-xs text-red-500 mt-1">{errors.subject}</div>}
             </div>
           )}
 
@@ -247,6 +298,7 @@ export default function LoginForm() {
                   onChange={(e) => setFormData({ ...formData, studyArea: e.target.value })}
                 />
               </div>
+              {errors.study_area && <div className="text-xs text-red-500 mt-1">{errors.study_area}</div>}
             </div>
           )}
 
@@ -263,6 +315,7 @@ export default function LoginForm() {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 />
               </div>
+              {errors.email && <div className="text-xs text-red-500 mt-1">{errors.email}</div>}
               <div className="text-xs text-muted">Para recuperar tu cuenta</div>
             </div>
           )}
@@ -284,6 +337,11 @@ export default function LoginForm() {
                 </select>
               </div>
             </div>
+          )}
+
+          {/* Contenedor para errores generales */}
+          {errors.general && (
+            <div className="p-3 bg-red-100 border border-red-300 text-red-800 rounded-md text-sm">{errors.general}</div>
           )}
 
           <button onClick={handleSubmit} className="btn-cta btn-pill w-full mt-2">{tab === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}</button>

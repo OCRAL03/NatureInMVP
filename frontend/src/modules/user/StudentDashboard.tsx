@@ -17,7 +17,7 @@ export default function StudentDashboard() {
 
   const load = async () => {
     try {
-      const u = await api.get('/auth/me/')
+      const u = await api.get('/user/me/')
       setMe(u.data)
       dispatch(setRole(u.data?.role || null))
       dispatch(setUser({ username: u.data?.username, role: u.data?.role }))
