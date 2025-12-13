@@ -9,6 +9,7 @@ import TeacherDashboard from './modules/user/TeacherDashboard'
 import ChatPage from './modules/chat/ChatPage'
 import SightingsPage from './modules/user/SightingsPage'
 import ExplorePage from './modules/explore/ExplorePage'
+import ActivityPage from './modules/explore/ActivityPage'
 import BaseLayout from './templates/BaseLayout'
 import LandingPage from './modules/landing/LandingPage'
 import DemoPage from './modules/demo/DemoPage'
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="/gamify/teacher" element={<ProtectedRoute><TeacherDashboard /></ProtectedRoute>} />
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/explore" element={<ExplorePage />} />
+        <Route path="/explore/activity" element={<ActivityPage />} />
         <Route path="/sightings" element={<ProtectedRoute><SightingsPage /></ProtectedRoute>} />
         <Route path="/demo" element={<DemoPage />} />
         <Route path="/demo/usuarios" element={<UsuariosPage />} />
