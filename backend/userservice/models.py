@@ -192,7 +192,6 @@ class UserActivity(models.Model):
     description = models.TextField(blank=True)
     metadata = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
     class Meta:
         verbose_name = "Actividad de Usuario"
         verbose_name_plural = "Actividades de Usuarios"
@@ -204,3 +203,143 @@ class UserActivity(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.get_activity_type_display()}"
+    
+class Place(models.Model):
+    """Lugares de interés para exploración y avistamientos"""
+    title = models.CharField(max_length=200, unique=True, verbose_name="Título")
+    description = models.TextField(blank=True, verbose_name="Descripción")
+    
+    # Coordenadas
+    latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        verbose_name="Latitud"
+    )
+    longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        verbose_name="Longitud"
+    )
+    
+    # Multimedia
+    image_url = models.URLField(blank=True, verbose_name="Imagen")
+    
+    # Categorización
+    PLACE_TYPES = [
+        ('park', 'Parque Nacional'),
+        ('trail', 'Sendero'),
+        ('waterfall', 'Catarata'),
+        ('cave', 'Cueva'),
+        ('river', 'Río'),
+        ('viewpoint', 'Mirador'),
+    ]
+    place_type = models.CharField(
+        max_length=20,
+        choices=PLACE_TYPES,
+        default='trail',
+        verbose_name="Tipo de Lugar"
+    )
+    
+    # Dificultad de acceso
+    DIFFICULTY_LEVELS = [
+        ('easy', 'Fácil'),
+        ('moderate', 'Moderado'),
+        ('difficult', 'Difícil'),
+    ]
+    difficulty = models.CharField(
+        max_length=20,
+        choices=DIFFICULTY_LEVELS,
+        default='easy',
+        verbose_name="Dificultad"
+    )
+    
+    # Relacionar con avistamientos
+    # (los Sighting ya tienen location string, pero podrían vincularse a Place)
+    
+    # Estadísticas
+    visit_count = models.IntegerField(default=0, verbose_name="Número de Visitas")
+    sightings_count = models.IntegerField(default=0, verbose_name="Avistamientos Registrados")
+    
+    # Metadatos
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True, verbose_name="Activo")
+    
+    class Meta:
+        verbose_name = "Lugar de Interés"
+        verbose_name_plural = "Lugares de Interés"
+        ordering = ['-visit_count', 'title']
+    
+    def __str__(self):
+        return f"{self.title} ({self.get_place_type_display()})"
+    
+class Message(models.Model):
+    """Sistema de mensajería interna entre usuarios"""
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='sent_messages',
+        verbose_name="Remitente"
+    )
+    recipient = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='received_messages',
+        verbose_name="Destinatario"
+    )
+    
+    # Contenido
+    subject = models.CharField(max_length=200, blank=True, verbose_name="Asunto")
+    content = models.TextField(verbose_name="Mensaje")
+    
+    # Tipo de mensaje
+    MESSAGE_TYPES = [
+        ('personal', 'Mensaje Personal'),
+        ('notification', 'Notificación del Sistema'),
+        ('feedback', 'Retroalimentación de Experto'),
+        ('announcement', 'Anuncio de Docente'),
+    ]
+    message_type = models.CharField(
+        max_length=20,
+        choices=MESSAGE_TYPES,
+        default='personal',
+        verbose_name="Tipo"
+    )
+    
+    # Relacionado con (opcional)
+    related_sighting = models.ForeignKey(
+        'Sighting',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Avistamiento Relacionado"
+    )
+    
+    # Estado
+    read = models.BooleanField(default=False, verbose_name="Leído")
+    read_at = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de Lectura")
+    archived = models.BooleanField(default=False, verbose_name="Archivado")
+    
+    # Metadatos
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "Mensaje"
+        verbose_name_plural = "Mensajes"
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['sender', 'recipient', '-created_at']),
+            models.Index(fields=['recipient', 'read', '-created_at']),
+            models.Index(fields=['message_type', '-created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.sender.username} → {self.recipient.username}: {self.subject or 'Sin asunto'}"
+    
+    def mark_as_read(self):
+        """Marcar mensaje como leído"""
+        from django.utils import timezone
+        if not self.read:
+            self.read = True
+            self.read_at = timezone.now()
+            self.save(update_fields=['read', 'read_at'])

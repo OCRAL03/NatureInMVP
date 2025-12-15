@@ -12,7 +12,11 @@ from .views import (
     teacher_stats,
     teacher_students,
     teacher_activities,
-    teacher_progress_metrics
+    teacher_progress_metrics,
+    places,
+    messages,
+    docs_institutions, 
+    docs_places
 )
 
 urlpatterns = [
@@ -41,4 +45,14 @@ urlpatterns = [
     path('teacher/students/', teacher_students, name='teacher_students'),
     path('teacher/activities/', teacher_activities, name='teacher_activities'),
     path('teacher/progress-metrics/', teacher_progress_metrics, name='teacher_progress_metrics'),
+
+    # Places (Lugares de Interés)
+    path('places/', places, name='place_list'),
+    
+    # Messages (Mensajería Interna)
+    path('messages/', messages, name='message_list'),
+    
+    # Documentation Endpoints
+    path('docs/institutions/', docs_institutions, name='docs_institutions'),
+    path('docs/places/', docs_places, name='docs_places'),
 ]

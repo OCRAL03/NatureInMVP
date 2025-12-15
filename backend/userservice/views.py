@@ -8,8 +8,9 @@ from django.db.models import Count, Q, Value, Avg
 from django.db.models.functions import Concat
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from pathlib import Path
 
-from .models import Sighting, UserProfile, UserActivity, Institution
+from .models import Sighting, UserProfile, UserActivity, Institution, Place, Message
 from .serializers import (
     UserRegistrationSerializer,
     UserSerializer,
@@ -18,7 +19,9 @@ from .serializers import (
     SightingSerializer,
     UserActivitySerializer,
     UserStatsSerializer,
-    InstitutionSerializer
+    InstitutionSerializer,
+    PlaceSerializer,
+    MessageSerializer
 )
 
 
@@ -664,3 +667,304 @@ def teacher_progress_metrics(request):
             )
     
     return Response(list(grades_data.values()), status=status.HTTP_200_OK)
+
+
+# ============================================================
+# LUGARES DE INTERÉS (PLACES)
+# ============================================================
+
+@swagger_auto_schema(
+    method='get',
+    operation_description="Listar lugares de interés turístico y educativo. Endpoint público.",
+    responses={
+        200: openapi.Response('Lista de lugares', PlaceSerializer(many=True))
+    },
+    tags=['Lugares']
+)
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def places(request):
+    """
+    Listar lugares de interés
+    Retorna rutas, parques, cataratas y puntos de exploración
+    """
+    queryset = Place.objects.filter(is_active=True).order_by('-visit_count', 'title')
+    serializer = PlaceSerializer(queryset, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# ============================================================
+# MENSAJERÍA INTERNA
+# ============================================================
+
+message_request_schema = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        'recipient': openapi.Schema(
+            type=openapi.TYPE_INTEGER,
+            description='ID del usuario destinatario'
+        ),
+        'recipient_id': openapi.Schema(
+            type=openapi.TYPE_INTEGER,
+            description='Alias para recipient (retrocompatibilidad)'
+        ),
+        'subject': openapi.Schema(
+            type=openapi.TYPE_STRING,
+            description='Asunto del mensaje'
+        ),
+        'content': openapi.Schema(
+            type=openapi.TYPE_STRING,
+            description='Contenido del mensaje'
+        ),
+        'message_type': openapi.Schema(
+            type=openapi.TYPE_STRING,
+            enum=['personal', 'notification', 'feedback', 'announcement'],
+            description='Tipo de mensaje'
+        ),
+        'related_sighting': openapi.Schema(
+            type=openapi.TYPE_INTEGER,
+            description='ID del avistamiento relacionado (opcional)'
+        ),
+    },
+    required=['content']
+)
+
+@swagger_auto_schema(
+    method='post',
+    operation_description="Enviar un mensaje a otro usuario",
+    request_body=message_request_schema,
+    responses={
+        201: openapi.Response('Mensaje enviado', MessageSerializer),
+        400: 'Datos inválidos'
+    },
+    tags=['Mensajería']
+)
+@swagger_auto_schema(
+    method='get',
+    operation_description="Listar mensajes recibidos. Usa ?with=<user_id> para filtrar conversación con usuario específico",
+    manual_parameters=[
+        openapi.Parameter(
+            'with',
+            openapi.IN_QUERY,
+            description="ID del usuario para filtrar conversación",
+            type=openapi.TYPE_INTEGER
+        )
+    ],
+    responses={
+        200: openapi.Response('Lista de mensajes', MessageSerializer(many=True))
+    },
+    tags=['Mensajería']
+)
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def messages(request):
+    """
+    Gestión de mensajería interna
+    GET: Lista mensajes recibidos (últimos 100)
+    POST: Enviar nuevo mensaje
+    """
+    user = request.user
+    
+    if request.method == 'POST':
+        # Preparar datos para el serializer
+        recipient_id = request.data.get('recipient') or request.data.get('recipient_id')
+        
+        payload = {
+            'sender': user.id,
+            'recipient': recipient_id,
+            'subject': request.data.get('subject', ''),
+            'content': request.data.get('content', ''),
+            'message_type': request.data.get('message_type', 'personal'),
+            'related_sighting': request.data.get('related_sighting')
+        }
+        
+        serializer = MessageSerializer(data=payload, context={'request': request})
+        
+        if serializer.is_valid():
+            message = serializer.save()
+            return Response(
+                MessageSerializer(message).data,
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    # GET: Listar mensajes recibidos
+    queryset = Message.objects.filter(recipient=user)
+    
+    # Filtrar por conversación con usuario específico
+    with_user_id = request.GET.get('with')
+    if with_user_id:
+        try:
+            queryset = queryset.filter(sender_id=int(with_user_id))
+        except (ValueError, TypeError):
+            pass
+    
+    # Últimos 100 mensajes
+    queryset = queryset.order_by('-created_at')[:100]
+    
+    serializer = MessageSerializer(queryset, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# ============================================================
+# ENDPOINTS DE DOCUMENTACIÓN
+# ============================================================
+
+@swagger_auto_schema(
+    method='get',
+    operation_description="Cargar instituciones educativas desde archivo de documentación. Endpoint público.",
+    responses={
+        200: openapi.Response(
+            'Lista de instituciones parseadas',
+            openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                items=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'name': openapi.Schema(type=openapi.TYPE_STRING),
+                        'address': openapi.Schema(type=openapi.TYPE_STRING),
+                        'phone': openapi.Schema(type=openapi.TYPE_STRING),
+                        'type': openapi.Schema(type=openapi.TYPE_STRING),
+                    }
+                )
+            )
+        )
+    },
+    tags=['Documentación']
+)
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def docs_institutions(request):
+    """
+    Parsear instituciones educativas desde archivo markdown
+    Lee docs/instituciones_educativas.md y extrae información estructurada
+    """
+    base_dir = Path(__file__).resolve().parents[2]
+    file_path = base_dir / 'docs' / 'instituciones_educativas.md'
+    items = []
+    
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                text = line.strip()
+                if not text:
+                    continue
+                
+                # Detectar nombre de institución
+                if (text.startswith('COLEGIO') or 
+                    'SECUNDARIO' in text or 
+                    'Amazonas' in text or 
+                    'Galileo' in text):
+                    name = text.replace(':', '').strip()
+                    items.append({'name': name})
+                
+                # Extraer dirección
+                elif text.startswith('Dirección:'):
+                    address = text.split('Dirección:')[-1].strip()
+                    if items:
+                        items[-1]['address'] = address
+                
+                # Extraer teléfono
+                elif text.startswith('Teléfono:'):
+                    phone = text.split('Teléfono:')[-1].strip()
+                    if items:
+                        items[-1]['phone'] = phone
+    
+    except FileNotFoundError:
+        return Response({
+            'error': 'Archivo de instituciones no encontrado',
+            'path': str(file_path)
+        }, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({
+            'error': f'Error al leer archivo: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    # Agregar tipo por defecto
+    for item in items:
+        item.setdefault('type', 'Mixto')
+        item.setdefault('address', 'No especificada')
+        item.setdefault('phone', 'No especificado')
+    
+    return Response(items, status=status.HTTP_200_OK)
+
+
+@swagger_auto_schema(
+    method='get',
+    operation_description="Cargar lugares turísticos desde archivo de documentación. Endpoint público.",
+    responses={
+        200: openapi.Response(
+            'Lista de lugares parseados',
+            openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                items=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'title': openapi.Schema(type=openapi.TYPE_STRING),
+                        'location': openapi.Schema(type=openapi.TYPE_STRING),
+                        'description': openapi.Schema(type=openapi.TYPE_STRING),
+                    }
+                )
+            )
+        )
+    },
+    tags=['Documentación']
+)
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def docs_places(request):
+    """
+    Parsear lugares turísticos desde archivo markdown
+    Lee docs/lugares_turisticos.md y extrae información estructurada
+    """
+    base_dir = Path(__file__).resolve().parents[2]
+    file_path = base_dir / 'docs' / 'lugares_turisticos.md'
+    items = []
+    current = None
+    
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                text = line.strip()
+                if not text:
+                    continue
+                
+                # Detectar título numerado: "1. Parque Nacional..."
+                if text[0].isdigit() and '.' in text[:3]:
+                    title = text.split('.', 1)[1].strip()
+                    current = {'title': title}
+                    items.append(current)
+                
+                # Detectar ubicación
+                elif current and any(keyword in text for keyword in [
+                    'Distrito', 'Caserío', 'Campus', 'Cerro', 'Carretera',
+                    'Sector', 'Zona', 'Plaza de Armas', 'Huallaga', 'UNAS'
+                ]):
+                    current.setdefault('location', text)
+                
+                # Detectar descripción (primer texto libre después del título)
+                elif current and 'description' not in current and len(text) > 15:
+                    # Ignorar encabezados de secciones
+                    if not any(text.startswith(prefix) for prefix in [
+                        'Horarios', 'Recomendaciones', 'Flora', 'Fauna',
+                        'Ubicación', 'Descripción del Lugar'
+                    ]):
+                        current['description'] = text
+    
+    except FileNotFoundError:
+        return Response({
+            'error': 'Archivo de lugares turísticos no encontrado',
+            'path': str(file_path)
+        }, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({
+            'error': f'Error al leer archivo: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    # Agregar valores por defecto
+    for item in items:
+        item.setdefault('location', 'Ubicación no especificada')
+        item.setdefault('description', 'Descripción no disponible')
+    
+    return Response(items, status=status.HTTP_200_OK)
+

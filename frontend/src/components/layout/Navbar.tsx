@@ -22,6 +22,7 @@ export default function Navbar() {
   const [showUserMenu, setShowUserMenu] = useState(false)
   const configBtnRef = useRef<HTMLButtonElement>(null)
   const userMenuRef = useRef<HTMLDivElement>(null)
+  const configPanelRef = useRef<HTMLDivElement>(null)
   const [panelWidth, setPanelWidth] = useState<number | undefined>(undefined)
   const [dragging, setDragging] = useState(false)
   const [userData, setUserData] = useState<any>(null)
@@ -58,6 +59,19 @@ export default function Navbar() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  useEffect(() => {
+  const handleClickOutsideConfig = (e: MouseEvent) => {
+    const target = e.target as Node
+    const clickedOutsidePanel = configPanelRef.current && !configPanelRef.current.contains(target)
+    const clickedOutsideButton = configBtnRef.current && !configBtnRef.current.contains(target)
+    if (showConfig && clickedOutsidePanel && clickedOutsideButton) {
+      setShowConfig(false)
+    }
+  }
+  document.addEventListener('mousedown', handleClickOutsideConfig)
+  return () => document.removeEventListener('mousedown', handleClickOutsideConfig)
+}, [showConfig])
 
   const toggleTheme = () => {
     const isDark = document.documentElement.classList.toggle('dark')
@@ -115,7 +129,6 @@ export default function Navbar() {
           <Eye className="w-5 h-5 md:hidden" />
           <span className="hidden md:inline">{t('nav.sightings')}</span>
         </Link>
-        <Link to="/demo" className="text-muted hidden md:inline" title="Demo">Demo</Link>
       </div>
       <div className="flex items-center gap-3 relative">
         <button 
@@ -130,6 +143,7 @@ export default function Navbar() {
         
         {showConfig && (
           <motion.div 
+            ref={configPanelRef}
             initial={{ opacity: 0, y: -10 }} 
             animate={{ opacity: 1, y: 0 }} 
             exit={{ opacity: 0, y: -10 }}
@@ -141,9 +155,9 @@ export default function Navbar() {
               <div>
                 <div className="text-xs text-muted mb-1">Idioma</div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <button onClick={() => { i18n.changeLanguage('es'); setShowConfig(false) }} className="btn-outline text-xs">ES</button>
-                  <button onClick={() => { i18n.changeLanguage('en'); setShowConfig(false) }} className="btn-outline text-xs">EN</button>
-                  <button onClick={() => { i18n.changeLanguage('qu'); setShowConfig(false) }} className="btn-outline text-xs">QU</button>
+                  <button onClick={() => { i18n.changeLanguage('es'); localStorage.setItem('lang', 'es'); document.documentElement.lang = 'es'; setShowConfig(false) }} className="btn-outline text-xs">ES</button>
+                  <button onClick={() => { i18n.changeLanguage('en'); localStorage.setItem('lang', 'en'); document.documentElement.lang = 'en'; setShowConfig(false) }} className="btn-outline text-xs">EN</button>
+                  <button onClick={() => { i18n.changeLanguage('qu'); localStorage.setItem('lang', 'qu'); document.documentElement.lang = 'qu'; setShowConfig(false) }} className="btn-outline text-xs">QU</button>
                 </div>
               </div>
               <div>
@@ -162,9 +176,9 @@ export default function Navbar() {
         
         {!token ? (
           <>
-            <Link to="/login?tab=register" className="btn-primary hidden md:inline">Regístrate</Link>
+            <Link to="/login?tab=register" className="btn-cta btn-cta-registrate hidden md:inline">Regístrate</Link>
             <Link to="/login?tab=login" className="btn-primary hidden md:inline">Inicia sesión</Link>
-            <Link to="/login?tab=register" className="btn-primary md:hidden">Únete</Link>
+            <Link to="/login?tab=register" className="btn-cta btn-cta-registrate md:hidden">Únete</Link>
           </>
         ) : (
           <div className="relative" ref={userMenuRef}>

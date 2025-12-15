@@ -5,7 +5,7 @@ from django.db import transaction
 from rest_framework import serializers
 
 from authservice.models import UserRole
-from .models import Sighting, UserProfile, UserActivity, Institution
+from .models import Sighting, UserProfile, UserActivity, Institution, Place, Message
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -286,3 +286,117 @@ class DashboardSerializer(serializers.Serializer):
     gamify = serializers.DictField()
     missions = serializers.ListField()
     recent_activities = UserActivitySerializer(many=True)
+
+class PlaceSerializer(serializers.ModelSerializer):
+    """Serializer para lugares de interés turístico y educativo"""
+    place_type_display = serializers.CharField(source='get_place_type_display', read_only=True)
+    difficulty_display = serializers.CharField(source='get_difficulty_display', read_only=True)
+    
+    class Meta:
+        model = Place
+        fields = [
+            'id',
+            'title',
+            'description',
+            'latitude',
+            'longitude',
+            'image_url',
+            'place_type',
+            'place_type_display',
+            'difficulty',
+            'difficulty_display',
+            'visit_count',
+            'sightings_count',
+            'is_active',
+            'created_at',
+            'updated_at'
+        ]
+        read_only_fields = ['id', 'visit_count', 'sightings_count', 'created_at', 'updated_at']
+
+
+class MessageSerializer(serializers.ModelSerializer):
+    """Serializer para mensajes internos entre usuarios"""
+    sender_username = serializers.CharField(source='sender.username', read_only=True)
+    sender_full_name = serializers.CharField(source='sender.profile.full_name', read_only=True)
+    recipient_username = serializers.CharField(source='recipient.username', read_only=True)
+    recipient_full_name = serializers.CharField(source='recipient.profile.full_name', read_only=True)
+    message_type_display = serializers.CharField(source='get_message_type_display', read_only=True)
+    
+    class Meta:
+        model = Message
+        fields = [
+            'id',
+            'sender',
+            'sender_username',
+            'sender_full_name',
+            'recipient',
+            'recipient_username',
+            'recipient_full_name',
+            'subject',
+            'content',
+            'message_type',
+            'message_type_display',
+            'related_sighting',
+            'read',
+            'read_at',
+            'archived',
+            'created_at'
+        ]
+        read_only_fields = [
+            'id',
+            'sender',
+            'read_at',
+            'created_at'
+        ]
+    
+    def validate_content(self, value):
+        """Validar contenido del mensaje"""
+        content = value.strip()
+        if not content:
+            raise serializers.ValidationError("El contenido no puede estar vacío")
+        if len(content) > 2000:  # Más generoso que 500
+            raise serializers.ValidationError("El contenido es demasiado largo (máximo 2000 caracteres)")
+        return content
+    
+    def validate(self, attrs):
+        """Validaciones cruzadas"""
+        sender = self.context['request'].user if 'request' in self.context else attrs.get('sender')
+        recipient = attrs.get('recipient')
+        
+        # Evitar auto-mensajes
+        if sender and recipient and sender.id == recipient.id:
+            raise serializers.ValidationError({
+                'recipient': 'No puedes enviarte mensajes a ti mismo'
+            })
+        
+        # Validar que subject no esté vacío si es mensaje personal
+        message_type = attrs.get('message_type', 'personal')
+        subject = attrs.get('subject', '').strip()
+        if message_type == 'personal' and not subject:
+            raise serializers.ValidationError({
+                'subject': 'Los mensajes personales requieren un asunto'
+            })
+        
+        return attrs
+    
+    def create(self, validated_data):
+        """Crear mensaje y registrar actividad"""
+        # Asignar sender desde request si no viene en data
+        if 'request' in self.context:
+            validated_data['sender'] = self.context['request'].user
+        
+        message = super().create(validated_data)
+        
+        # Registrar actividad para el remitente
+        UserActivity.objects.create(
+            user=message.sender,
+            activity_type='profile_update',  # Puedes crear un tipo 'message_sent'
+            description=f'Mensaje enviado a {message.recipient.username}',
+            metadata={
+                'message_id': message.id,
+                'recipient_id': message.recipient.id,
+                'message_type': message.message_type
+            }
+        )
+        
+        return message

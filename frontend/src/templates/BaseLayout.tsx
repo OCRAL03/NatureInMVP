@@ -4,10 +4,11 @@ import Footer from '../components/layout/Footer'
 import Page from './Page'
 import ChatPage from '../modules/chat/ChatPage'
 import botImg from '../assets/images/chatbot.jpg'
+import RoleSideBar from '../components/layout/RoleSidebar'
 
 export default function BaseLayout({ children }: { children: React.ReactNode }) {
   const [showChat, setShowChat] = useState(false)
-
+  
   useEffect(() => {
     const saved = localStorage.getItem('theme')
     const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
