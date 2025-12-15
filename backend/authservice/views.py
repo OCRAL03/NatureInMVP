@@ -11,9 +11,16 @@ from .serializers import (
     CustomTokenObtainPairSerializer,
     ChangePasswordSerializer,
     PasswordResetRequestSerializer,
-    PasswordResetConfirmSerializer
+    PasswordResetConfirmSerializer,
+    EmailVerificationRequestSerializer,
+    EmailVerificationConfirmSerializer
 )
-from .models import LoginAttempt, PasswordResetToken
+from .models import LoginAttempt, PasswordResetToken, EmailVerificationCode, SuspiciousActivity
+from django.conf import settings
+from django.utils import timezone
+from cryptography.fernet import Fernet
+import hashlib
+import secrets as py_secrets
 
 
 def get_client_ip(request):
@@ -41,6 +48,21 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
         # Verificar si está bloqueado por intentos fallidos
         if LoginAttempt.is_blocked(username, ip_address):
+            try:
+                user = User.objects.get(username=username)
+                SuspiciousActivity.objects.create(
+                    user=user,
+                    ip_address=ip_address,
+                    event='login_bruteforce_blocked',
+                    metadata={'username': username}
+                )
+            except User.DoesNotExist:
+                SuspiciousActivity.objects.create(
+                    user=None,
+                    ip_address=ip_address,
+                    event='login_bruteforce_blocked',
+                    metadata={'username': username}
+                )
             return Response({
                 'detail': 'Demasiados intentos fallidos. Intenta nuevamente en 15 minutos.'
             }, status=status.HTTP_429_TOO_MANY_REQUESTS)
@@ -48,10 +70,30 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         # Intentar autenticación
         response = super().post(request, *args, **kwargs)
 
-        # Registrar el intento
+        # Registrar el intento preliminar
         success = response.status_code == 200
-        LoginAttempt.record_attempt(username, ip_address, success)
 
+        # Si autenticó pero email no verificado, bloquear login
+        if success:
+            try:
+                user = User.objects.get(username=username)
+                email_verified = getattr(getattr(user, 'profile', None), 'email_verified', False)
+                if not email_verified:
+                    SuspiciousActivity.objects.create(
+                        user=user,
+                        ip_address=ip_address,
+                        event='login_unverified_email',
+                        metadata={'username': username}
+                    )
+                    LoginAttempt.record_attempt(username, ip_address, False)
+                    return Response({
+                        'detail': 'Correo no verificado. Completa la verificación para iniciar sesión.',
+                        'code': 'email_unverified'
+                    }, status=status.HTTP_403_FORBIDDEN)
+            except User.DoesNotExist:
+                pass
+
+        LoginAttempt.record_attempt(username, ip_address, success)
         return response
 
 
@@ -108,6 +150,12 @@ def request_password_reset(request):
         email = serializer.validated_data['email']
         try:
             user = User.objects.get(email=email)
+            # Solo permitir si correo verificado
+            email_verified = getattr(getattr(user, 'profile', None), 'email_verified', False)
+            if not email_verified:
+                return Response({
+                    'message': 'Si el email existe y está verificado, recibirás un enlace de recuperación'
+                }, status=status.HTTP_200_OK)
 
             # Generar token seguro
             token = secrets.token_urlsafe(32)
@@ -170,6 +218,148 @@ def reset_password(request):
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+def _send_email(to_email: str, subject: str, body: str):
+    """Enviar email utilizando configuración de Django; en desarrollo, registrar actividad"""
+    try:
+        from django.core.mail import send_mail
+        default_from = getattr(settings, 'DEFAULT_FROM_EMAIL', 'no-reply@naturein.local')
+        send_mail(subject, body, default_from, [to_email], fail_silently=True)
+    except Exception:
+        pass
+
+
+def _hash_code(code: str, salt: str) -> str:
+    return hashlib.sha256(f'{code}:{salt}'.encode()).hexdigest()
+
+
+def _generate_code() -> str:
+    return f'{py_secrets.randbelow(900000)+100000}'
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def health(request):
+    return Response({'status': 'ok'})
+
+
+@swagger_auto_schema(
+    method='post',
+    operation_description="Solicitar código de verificación de email (expira en 15 minutos).",
+    request_body=EmailVerificationRequestSerializer,
+    responses={
+        200: openapi.Response('Código enviado si el usuario existe', examples={
+            'application/json': {'message': 'Si existe el usuario, se envió un código de verificación'}
+        }),
+        400: 'Datos inválidos'
+    },
+    tags=['Autenticación']
+)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def email_verification_request(request):
+    serializer = EmailVerificationRequestSerializer(data=request.data)
+    if serializer.is_valid():
+        username = serializer.validated_data.get('username', '').strip()
+        email = serializer.validated_data.get('email', '').strip()
+        user = None
+        if username:
+            try:
+                user = User.objects.get(username=username)
+            except User.DoesNotExist:
+                pass
+        elif email:
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                pass
+        if user:
+            # Generar código y guardar hash
+            code = _generate_code()
+            salt = py_secrets.token_hex(8)
+            code_hash = _hash_code(code, salt)
+            EmailVerificationCode.objects.create(
+                user=user,
+                code_hash=code_hash,
+                salt=salt
+            )
+            # Enviar email
+            to_email = user.email
+            subject = 'Tu código de verificación de NatureIn'
+            body = f'Tu código de verificación es: {code}. Expira en 15 minutos.'
+            _send_email(to_email, subject, body)
+        resp = {'message': 'Si existe el usuario, se envió un código de verificación'}
+        if settings.DEBUG and user:
+            resp['dev_code'] = code
+        return Response(resp, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@swagger_auto_schema(
+    method='post',
+    operation_description="Confirmar el código de verificación de email (máximo 3 intentos).",
+    request_body=EmailVerificationConfirmSerializer,
+    responses={
+        200: openapi.Response('Email verificado', examples={'application/json': {'message': 'Email verificado exitosamente'}}),
+        400: 'Código inválido',
+        403: 'Límite de intentos alcanzado o código expirado'
+    },
+    tags=['Autenticación']
+)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def email_verification_confirm(request):
+    serializer = EmailVerificationConfirmSerializer(data=request.data)
+    if serializer.is_valid():
+        username = serializer.validated_data.get('username', '').strip()
+        email = serializer.validated_data.get('email', '').strip()
+        code = serializer.validated_data['code']
+        ip_address = get_client_ip(request)
+        user = None
+        try:
+            user = User.objects.get(username=username) if username else User.objects.get(email=email)
+        except User.DoesNotExist:
+            pass
+        if not user:
+            return Response({'detail': 'Código inválido'}, status=status.HTTP_400_BAD_REQUEST)
+        # Obtener el último código activo
+        ev = EmailVerificationCode.objects.filter(user=user, used=False).order_by('-created_at').first()
+        if not ev or not ev.is_valid(expiry_minutes=15):
+            SuspiciousActivity.objects.create(user=user, ip_address=ip_address, event='email_code_invalid_or_expired', metadata={})
+            return Response({'detail': 'Código expirado o inválido'}, status=status.HTTP_403_FORBIDDEN)
+        # Validar hash
+        if _hash_code(code, ev.salt) == ev.code_hash:
+            ev.register_attempt(True)
+            # Marcar perfil como verificado
+            try:
+                profile = user.profile
+            except Exception:
+                from userservice.models import UserProfile
+                profile = UserProfile.objects.create(user=user)
+            profile.email_verified = True
+            profile.email_verified_at = timezone.now()
+            profile.save(update_fields=['email_verified', 'email_verified_at'])
+            return Response({'message': 'Email verificado exitosamente'}, status=status.HTTP_200_OK)
+        else:
+            ev.register_attempt(False)
+            if ev.attempts >= ev.max_attempts:
+                SuspiciousActivity.objects.create(user=user, ip_address=ip_address, event='email_code_max_attempts', metadata={'attempts': ev.attempts})
+                return Response({'detail': 'Límite de intentos alcanzado'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail': 'Código incorrecto'}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@swagger_auto_schema(
+    method='post',
+    operation_description="Reenviar el código de verificación al email registrado.",
+    request_body=EmailVerificationRequestSerializer,
+    responses={200: 'Código reenviado si el usuario existe'},
+    tags=['Autenticación']
+)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def email_verification_resend(request):
+    return email_verification_request(request)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

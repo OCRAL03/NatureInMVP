@@ -3,7 +3,10 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
+from typing import Optional
 
+User = get_user_model()
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """Serializer para JWT con información adicional del usuario"""
@@ -64,4 +67,43 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         except ValidationError as e:
             raise serializers.ValidationError({"new_password": list(e.messages)})
 
+        return data
+
+
+class EmailVerificationRequestSerializer(serializers.Serializer):
+    """Solicitud de envío de código de verificación por email"""
+    username = serializers.CharField(required=False, allow_blank=True)
+    email = serializers.EmailField(required=False, allow_blank=True)
+
+    def validate(self, data):
+        username = data.get('username', '').strip()
+        email = data.get('email', '').strip()
+        if not username and not email:
+            raise serializers.ValidationError({'detail': 'Debe proporcionar username o email'})
+        try:
+            user = None
+            if username:
+                user = User.objects.get(username=username)
+            else:
+                user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            # Respuesta genérica, no revelar existencia
+            pass
+        return data
+
+
+class EmailVerificationConfirmSerializer(serializers.Serializer):
+    """Confirmación del código de verificación de email"""
+    username = serializers.CharField(required=False, allow_blank=True)
+    email = serializers.EmailField(required=False, allow_blank=True)
+    code = serializers.CharField(required=True)  # 6 dígitos
+
+    def validate(self, data):
+        username = data.get('username', '').strip()
+        email = data.get('email', '').strip()
+        code = data.get('code', '').strip()
+        if not username and not email:
+            raise serializers.ValidationError({'detail': 'Debe proporcionar username o email'})
+        if not code.isdigit() or len(code) != 6:
+            raise serializers.ValidationError({'code': 'El código debe ser numérico de 6 dígitos'})
         return data

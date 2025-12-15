@@ -9,15 +9,4 @@ class Migration(migrations.Migration):
         ('userservice', '0002_institution'),
     ]
 
-    operations = [
-        migrations.CreateModel(
-            name='Place',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=200, unique=True)),
-                ('lat', models.FloatField()),
-                ('lng', models.FloatField()),
-                ('image_url', models.CharField(blank=True, max_length=300)),
-            ],
-        ),
-    ]
+    operations = []

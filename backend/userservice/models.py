@@ -71,6 +71,9 @@ class UserProfile(models.Model):
     bio = models.TextField(blank=True, verbose_name="Biografía")
     avatar_url = models.URLField(blank=True, null=True, verbose_name="URL del Avatar")
     phone = models.CharField(max_length=20, blank=True, verbose_name="Teléfono")
+    email_verified = models.BooleanField(default=False, verbose_name="Correo Verificado")
+    email_verified_at = models.DateTimeField(null=True, blank=True, verbose_name="Fecha Verificación")
+    email_encrypted = models.TextField(blank=True, verbose_name="Correo Encriptado")
 
     # Metadatos
     created_at = models.DateTimeField(auto_now_add=True)

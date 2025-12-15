@@ -1,4 +1,4 @@
-﻿from rest_framework import status
+from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -23,6 +23,7 @@ from .serializers import (
     PlaceSerializer,
     MessageSerializer
 )
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 @swagger_auto_schema(
@@ -46,8 +47,21 @@ def register(request):
 
     if serializer.is_valid():
         user = serializer.save()
+        # Enviar código de verificación si el email existe
+        if user.email:
+            try:
+                from authservice.views import _generate_code, _hash_code, _send_email
+                from authservice.models import EmailVerificationCode
+                import secrets as py_secrets
+                code = _generate_code()
+                salt = py_secrets.token_hex(8)
+                code_hash = _hash_code(code, salt)
+                EmailVerificationCode.objects.create(user=user, code_hash=code_hash, salt=salt)
+                _send_email(user.email, 'Verifica tu correo', f'Tu código es: {code}. Expira en 15 minutos.')
+            except Exception:
+                pass
         return Response({
-            "message": "Usuario registrado exitosamente",
+            "message": "Usuario registrado exitosamente. Verifica tu correo para poder iniciar sesión.",
             "user": {
                 "id": user.id,
                 "username": user.username,
@@ -967,4 +981,3 @@ def docs_places(request):
         item.setdefault('description', 'Descripción no disponible')
     
     return Response(items, status=status.HTTP_200_OK)
-

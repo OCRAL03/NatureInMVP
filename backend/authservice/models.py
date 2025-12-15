@@ -33,7 +33,7 @@ class LoginAttempt(models.Model):
         ]
 
     @classmethod
-    def is_blocked(cls, username, ip_address, max_attempts=5, window_minutes=15):
+    def is_blocked(cls, username, ip_address, max_attempts=3, window_minutes=15):
         """Verifica si un usuario/IP está bloqueado por intentos fallidos"""
         threshold = timezone.now() - timedelta(minutes=window_minutes)
         recent_failures = cls.objects.filter(
@@ -66,3 +66,52 @@ class PasswordResetToken(models.Model):
             return False
         expiry_time = self.created_at + timedelta(hours=expiry_hours)
         return timezone.now() < expiry_time
+
+
+class EmailVerificationCode(models.Model):
+    """Códigos de verificación de email (6 dígitos) con expiración y límite de intentos"""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='email_codes')
+    code_hash = models.CharField(max_length=64)
+    salt = models.CharField(max_length=32)
+    created_at = models.DateTimeField(auto_now_add=True)
+    used = models.BooleanField(default=False)
+    attempts = models.IntegerField(default=0)
+    max_attempts = models.IntegerField(default=3)
+    last_sent_at = models.DateTimeField(auto_now_add=True)
+    resend_count = models.IntegerField(default=0)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['used']),
+        ]
+
+    def is_valid(self, expiry_minutes=15):
+        """Vigencia 15 minutos por defecto"""
+        if self.used:
+            return False
+        expiry_time = self.created_at + timedelta(minutes=expiry_minutes)
+        return timezone.now() < expiry_time and self.attempts < self.max_attempts
+
+    def register_attempt(self, success: bool):
+        """Registrar intento de validación de código"""
+        if not self.used and self.attempts < self.max_attempts:
+            self.attempts += 1
+            if success:
+                self.used = True
+            self.save(update_fields=['attempts', 'used'])
+
+
+class SuspiciousActivity(models.Model):
+    """Registro de actividades sospechosas para auditoría"""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    event = models.CharField(max_length=64)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['event', '-created_at']),
+            models.Index(fields=['user', '-created_at']),
+        ]

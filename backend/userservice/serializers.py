@@ -3,6 +3,8 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from rest_framework import serializers
+from django.conf import settings
+from cryptography.fernet import Fernet
 
 from authservice.models import UserRole
 from .models import Sighting, UserProfile, UserActivity, Institution, Place, Message
@@ -171,7 +173,22 @@ class UserRegistrationSerializer(serializers.Serializer):
             UserRole.objects.create(user=user, role=normalized_role)
 
             # 3. Crear perfil extendido
-            UserProfile.objects.create(user=user, **profile_data)
+            # Encriptar correo (copia) si existe
+            enc_email = ''
+            try:
+                raw_email = user_data.get('email', '') or ''
+                key = settings.EMAIL_ENCRYPTION_KEY.encode() if hasattr(settings, 'EMAIL_ENCRYPTION_KEY') else None
+                if key and raw_email:
+                    f = Fernet(key)
+                    enc_email = f.encrypt(raw_email.encode()).decode()
+            except Exception:
+                enc_email = ''
+            profile = UserProfile.objects.create(
+                user=user,
+                email_encrypted=enc_email,
+                email_verified=False,
+                **profile_data
+            )
 
             # 4. Registrar actividad
             UserActivity.objects.create(
