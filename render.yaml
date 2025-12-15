@@ -7,7 +7,9 @@ services:
     dockerfilePath: backend/Dockerfile
     envVars:
       - key: DATABASE_URL
-        fromDatabase: natureindb
+        fromDatabase:
+          name: naturein-db
+          property: connectionString
       - key: DJANGO_SECRET_KEY
         generateValue: true
       - key: ALLOWED_HOSTS
@@ -16,20 +18,7 @@ services:
         value: https://naturein.educa,https://traexn7qb7vl.vercel.app
       - key: CSRF_TRUSTED_ORIGINS
         value: https://naturein.educa,https://traexn7qb7vl.vercel.app
-      - key: EMAIL_BACKEND
-        value: django.core.mail.backends.smtp.EmailBackend
-      - key: EMAIL_HOST
-        sync: false
-      - key: EMAIL_PORT
-        value: 587
-      - key: EMAIL_USE_TLS
-        value: true
-      - key: EMAIL_HOST_USER
-        sync: false
-      - key: EMAIL_HOST_PASSWORD
-        sync: false
-      - key: DEFAULT_FROM_EMAIL
-        value: no-reply@naturein.educa
+
 databases:
   - name: naturein-db
     plan: starter
