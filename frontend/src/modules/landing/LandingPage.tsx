@@ -20,7 +20,6 @@ export default function LandingPage() {
     { id: 'sp-2', scientificName: 'Orquídea amazónica', description: 'Flor icónica de gran diversidad.', imageUrl: imgOrquidea, kingdom: 'Plantae', status: 'NT' },
     { id: 'sp-3', scientificName: 'Tigrillo', description: 'Felino ágil y nocturno.', imageUrl: imgTigrillo, kingdom: 'Animalia', status: 'VU' },
     { id: 'sp-4', scientificName: 'Orquídea epífita', description: 'Crece sobre árboles, sin parasitarlos.', imageUrl: imgOrquidea, kingdom: 'Plantae', status: 'LC' },
-    { id: 'sp-5', scientificName: 'Gallito andino', description: 'Pariente cercano de colorido intenso.', imageUrl: imgGallito, kingdom: 'Animalia', status: 'LC' },
   ]
   return (
     <div>
