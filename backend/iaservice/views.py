@@ -8,7 +8,7 @@ import os, requests
 @permission_classes([AllowAny])
 def ia_chat(request):
     user_message = request.data.get("message", "")
-    api_key = os.environ.get("API_KEY")
+    api_key = os.environ.get("GROQ_API_KEY")
 
     if not api_key:
         return Response({"error": "API key no encontrada"}, status=500)
@@ -34,8 +34,9 @@ def ia_chat(request):
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
+    model = os.environ.get("GROQ_MODEL", "llama-3.1-8b-instant")
     data = {
-        "model": "llama-3.1-8b-instant",
+        "model": model,
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_message}
@@ -59,4 +60,3 @@ def ia_chat(request):
 
     except requests.exceptions.RequestException as e:
         return Response({"error": f"Error al conectar con Groq: {str(e)}"}, status=500)
-

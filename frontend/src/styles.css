@@ -68,6 +68,8 @@ body {
 }
 
 .btn-cta { @apply px-5 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 transition; }
+.btn-cta-registrate { background-color: #0EA47A; color: #ffffff; border-radius: 0; }
+.btn-cta-registrate:hover { background-color: #0c916d; }
 .btn-outline { @apply px-5 py-2 rounded-md border hover:bg-green-50 transition; }
 .btn-outline { border-color: var(--color-border); color: var(--color-texto); background-color: var(--color-surface); }
 .btn-pill { @apply px-4 py-2 rounded-full; }
@@ -166,3 +168,18 @@ body {
 .dark body { background-color: rgba(160,255,157,0.12); }
 .dark .btn-cta { background-color: #128a3f; }
 .dark .btn-cta:hover { background-color: #0f7a37; }
+.dark .btn-cta-registrate { background-color: #0EA47A; color: #ffffff; }
+.dark .btn-cta-registrate:hover { background-color: #0c916d; }
+
+/* Dark mode: pills and badges with proper contrast */
+.dark .pill { background-color: #1f2a37; border-color: #3b4a5a; color: #e2e8f0; }
+.dark .pill-green { background-color: #173b2a; color: #a7f3d0; border-color: #2f6b4a; }
+.dark .pill-blue { background-color: #142b3b; color: #bfdbfe; border-color: #2a4d6b; }
+.dark .pill-yellow { background-color: #3a3a1f; color: #fde68a; border-color: #6b6b2a; }
+
+/* Dark mode: landing and learn hero panels */
+.dark .landing-hero { background-color: var(--color-surface); border-color: var(--color-border); }
+.dark .learn-hero { background-color: var(--color-surface); border-color: var(--color-border); }
+
+/* Dark mode: clickable hover subtle */
+.dark .clickable-green:hover { background-color: rgba(56, 180, 126, 0.18); box-shadow: 0 2px 8px rgba(56, 180, 126, 0.25); }

@@ -1,13 +1,13 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { logout } from '../../api/client'
-import { BookOpen, Gamepad2, Compass, Eye, Sun, Moon, Globe, Settings } from 'lucide-react'
+import { BookOpen, Gamepad2, Compass, Eye, Sun, Moon, Settings, ChevronDown, LayoutDashboard, LogOut, User } from 'lucide-react'
 import { useEffect, useState, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { RootState } from '../../store'
 import { setRole, setUser } from '../../modules/auth/authSlice'
 import { useTranslation } from 'react-i18next'
 import api from '../../api/client'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 const logoImg = new URL('../../assets/images/naturein_logo.png', import.meta.url).href
 
 export default function Navbar() {
@@ -16,11 +16,16 @@ export default function Navbar() {
   const onLogout = () => { logout(); navigate('/login') }
   const dispatch = useDispatch()
   const role = useSelector((s: RootState) => s.auth.role)
+  const user = useSelector((s: RootState) => s.auth.user)
   const { t, i18n } = useTranslation()
   const [showConfig, setShowConfig] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
   const configBtnRef = useRef<HTMLButtonElement>(null)
+  const userMenuRef = useRef<HTMLDivElement>(null)
+  const configPanelRef = useRef<HTMLDivElement>(null)
   const [panelWidth, setPanelWidth] = useState<number | undefined>(undefined)
   const [dragging, setDragging] = useState(false)
+  const [userData, setUserData] = useState<any>(null)
   useEffect(() => {
     if (showConfig && configBtnRef.current) setPanelWidth(configBtnRef.current.offsetWidth)
   }, [showConfig])
@@ -36,15 +41,70 @@ export default function Navbar() {
     const theme = localStorage.getItem('theme')
     if (theme === 'dark') document.documentElement.classList.add('dark')
     if (token) {
-      api.get('/auth/me/').then(res => { dispatch(setRole(res.data?.role || null)); dispatch(setUser({ username: res.data?.username, role: res.data?.role })) }).catch(() => {})
+      api.get('/user/me/').then(res => {
+        dispatch(setRole(res.data?.role || null))
+        dispatch(setUser({ username: res.data?.username, role: res.data?.role }))
+        setUserData(res.data)
+      }).catch(() => {})
     }
+  }, [token])
+
+  // Cerrar menús al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setShowUserMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  useEffect(() => {
+  const handleClickOutsideConfig = (e: MouseEvent) => {
+    const target = e.target as Node
+    const clickedOutsidePanel = configPanelRef.current && !configPanelRef.current.contains(target)
+    const clickedOutsideButton = configBtnRef.current && !configBtnRef.current.contains(target)
+    if (showConfig && clickedOutsidePanel && clickedOutsideButton) {
+      setShowConfig(false)
+    }
+  }
+  document.addEventListener('mousedown', handleClickOutsideConfig)
+  return () => document.removeEventListener('mousedown', handleClickOutsideConfig)
+}, [showConfig])
 
   const toggleTheme = () => {
     const isDark = document.documentElement.classList.toggle('dark')
     localStorage.setItem('theme', isDark ? 'dark' : 'light')
   }
-  const toggleLang = () => { i18n.changeLanguage(i18n.language === 'es' ? 'qu' : i18n.language === 'qu' ? 'en' : 'es'); setShowConfig(false) }
+  
+  const getDashboardRoute = () => {
+    const roleMap: Record<string, string> = {
+      student: '/dashboard/student',
+      teacher: '/dashboard/teacher',
+      expert: '/dashboard/expert'
+    }
+    return roleMap[role || 'student'] || '/dashboard/student'
+  }
+
+  const getAvatarInitials = () => {
+    if (userData?.profile?.full_name) {
+      return userData.profile.full_name.charAt(0).toUpperCase()
+    }
+    if (userData?.username) {
+      return userData.username.charAt(0).toUpperCase()
+    }
+    return 'U'
+  }
+
+  const getRoleLabel = () => {
+    const roleLabels: Record<string, string> = {
+      student: 'Estudiante',
+      teacher: 'Docente',
+      expert: 'Experto'
+    }
+    return roleLabels[role || 'student'] || 'Usuario'
+  }
   return (
     <nav className="flex items-center p-3 gradient-border bg-surface">
       <div className="flex items-center gap-2">
@@ -69,23 +129,35 @@ export default function Navbar() {
           <Eye className="w-5 h-5 md:hidden" />
           <span className="hidden md:inline">{t('nav.sightings')}</span>
         </Link>
-        <Link to="/demo" className="text-muted hidden md:inline" title="Demo">Demo</Link>
       </div>
       <div className="flex items-center gap-3 relative">
-        <button ref={configBtnRef} aria-label="Configuración" onClick={() => setShowConfig((v) => !v)} className="btn-outline flex items-center gap-1"><Settings className="w-4 h-4" /><span className="config-label">Configuración</span></button>
+        <button 
+          ref={configBtnRef} 
+          aria-label="Configuración" 
+          onClick={() => setShowConfig((v) => !v)} 
+          className="btn-outline flex items-center gap-1"
+        >
+          <Settings className="w-4 h-4" />
+          <span className="hidden md:inline">Configuración</span>
+        </button>
+        
         {showConfig && (
-          <motion.div initial={{ opacity: 0, y: 0 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 0 }}
-            className="absolute left-0 top-full mt-0 z-50 bg-surface shadow-lg border border-base rounded-md p-2"
-            style={{ width: panelWidth, boxSizing: 'border-box' }}
+          <motion.div 
+            ref={configPanelRef}
+            initial={{ opacity: 0, y: -10 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute right-0 top-full mt-2 z-50 bg-surface shadow-lg border border-base rounded-md p-3"
+            style={{ width: panelWidth || 200, boxSizing: 'border-box' }}
           >
             <div className="text-sm font-semibold mb-2">Configuración</div>
             <div className="space-y-3">
               <div>
                 <div className="text-xs text-muted mb-1">Idioma</div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <button onClick={() => { i18n.changeLanguage('es'); setShowConfig(false) }} className="btn-outline text-xs">ES</button>
-                  <button onClick={() => { i18n.changeLanguage('en'); setShowConfig(false) }} className="btn-outline text-xs">EN</button>
-                  <button onClick={() => { i18n.changeLanguage('qu'); setShowConfig(false) }} className="btn-outline text-xs">QU</button>
+                  <button onClick={() => { i18n.changeLanguage('es'); localStorage.setItem('lang', 'es'); document.documentElement.lang = 'es'; setShowConfig(false) }} className="btn-outline text-xs">ES</button>
+                  <button onClick={() => { i18n.changeLanguage('en'); localStorage.setItem('lang', 'en'); document.documentElement.lang = 'en'; setShowConfig(false) }} className="btn-outline text-xs">EN</button>
+                  <button onClick={() => { i18n.changeLanguage('qu'); localStorage.setItem('lang', 'qu'); document.documentElement.lang = 'qu'; setShowConfig(false) }} className="btn-outline text-xs">QU</button>
                 </div>
               </div>
               <div>
@@ -101,14 +173,93 @@ export default function Navbar() {
             <div className="absolute top-0 right-0 h-full w-2 cursor-ew-resize" onMouseDown={() => setDragging(true)} />
           </motion.div>
         )}
+        
         {!token ? (
           <>
-            <Link to="/login?tab=register" className="btn-primary hidden md:inline">Regístrate</Link>
+            <Link to="/login?tab=register" className="btn-cta btn-cta-registrate hidden md:inline">Regístrate</Link>
             <Link to="/login?tab=login" className="btn-primary hidden md:inline">Inicia sesión</Link>
-            <Link to="/login?tab=register" className="btn-primary md:hidden">Únete</Link>
+            <Link to="/login?tab=register" className="btn-cta btn-cta-registrate md:hidden">Únete</Link>
           </>
         ) : (
-          <button className="btn-primary" onClick={onLogout}>{role ? `Logout (${role})` : 'Logout'}</button>
+          <div className="relative" ref={userMenuRef}>
+            <button 
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-md transition-colors"
+            >
+              {userData?.profile?.avatar_url ? (
+                <img 
+                  src={userData.profile.avatar_url} 
+                  alt={userData.profile.full_name || userData.username}
+                  className="w-8 h-8 rounded-full object-cover border-2 border-green-500"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white text-sm font-bold">
+                  {getAvatarInitials()}
+                </div>
+              )}
+              <ChevronDown className={`w-4 h-4 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
+            </button>
+
+            <AnimatePresence>
+              {showUserMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute right-0 top-full mt-2 w-56 bg-surface shadow-lg border border-base rounded-md overflow-hidden z-50"
+                >
+                  {/* Header del menú */}
+                  <div className="px-4 py-3 border-b border-base bg-gradient-to-r from-green-50 to-blue-50 dark:from-gray-800 dark:to-gray-800">
+                    <div className="font-semibold text-sm">
+                      {userData?.profile?.full_name || userData?.username || 'Usuario'}
+                    </div>
+                    <div className="text-xs text-muted flex items-center gap-1 mt-1">
+                      <User className="w-3 h-3" />
+                      {getRoleLabel()}
+                    </div>
+                  </div>
+
+                  {/* Opciones del menú */}
+                  <div className="py-2">
+                    <button
+                      onClick={() => {
+                        navigate(getDashboardRoute())
+                        setShowUserMenu(false)
+                      }}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-3 transition-colors"
+                    >
+                      <LayoutDashboard className="w-4 h-4" />
+                      <span className="text-sm">Dashboard</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false)
+                        setShowConfig(true)
+                      }}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-3 transition-colors"
+                    >
+                      <Settings className="w-4 h-4" />
+                      <span className="text-sm">Configuración</span>
+                    </button>
+
+                    <div className="border-t border-base my-2"></div>
+
+                    <button
+                      onClick={() => {
+                        onLogout()
+                        setShowUserMenu(false)
+                      }}
+                      className="w-full px-4 py-2 text-left hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3 text-red-600 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span className="text-sm">Cerrar sesión</span>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         )}
       </div>
     </nav>
